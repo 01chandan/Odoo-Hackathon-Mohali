@@ -186,7 +186,10 @@ const Header = ({
           />
         </div>
         <div className="flex items-center gap-2 md:gap-4">
-          <button className="w-full px-5 py-2 text-sm font-medium text-[#000000] shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-lg hover:bg-gray-200 transition-colors duration-500 cursor-pointer">
+          <button
+            onClick={() => setMyIssues(true)}
+            className="w-full px-5 py-2 text-sm font-medium text-[#000000] shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-lg hover:bg-gray-200 transition-colors duration-500 cursor-pointer"
+          >
             My Issue
           </button>
           <button
@@ -338,6 +341,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
 export default function App() {
   const [isOpenIssuePopup, setIsOpenIssuePopup] = useState(false);
+  const [myIssues, setMyIssues] = useState(false);
 
   const [filters, setFilters] = useState({
     category: "All",
@@ -385,6 +389,7 @@ export default function App() {
 
           return {
             id: issue.id,
+            email: issue.users_table?.email || "Unknown",
             category: issue.categories?.name || "Unknown",
             title: issue.title,
             status,
@@ -422,6 +427,13 @@ export default function App() {
     )
       return false;
     if (filters.distance === "> 3 Km" && distanceValue <= 3) return false;
+
+    if (
+      searchQuery &&
+      !issue.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !issue.address.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+      return false;
 
     if (
       searchQuery &&
