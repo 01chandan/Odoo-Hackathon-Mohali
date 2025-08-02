@@ -38,7 +38,7 @@ function calculateSince(dateString) {
   return `since last ${daysDiff} day${daysDiff !== 1 ? "s" : ""}`;
 }
 
-const issuesData = rawIssues.map((issue) => {
+const issuesData = rawIssues?.map((issue) => {
   const latestStatusLog =
     issue.issue_status_logs?.[issue.issue_status_logs.length - 1];
   const status = latestStatusLog?.status || issue.status;
@@ -60,8 +60,6 @@ const issuesData = rawIssues.map((issue) => {
 });
 
 console.log(issuesData);
-
-const ITEMS_PER_PAGE = 6;
 
 // Normal Components
 
