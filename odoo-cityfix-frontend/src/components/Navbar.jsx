@@ -200,17 +200,22 @@ export default function ProfessionalHeader() {
     navigate("/");
   };
 
+  const toggleMobileMenu = () => {
+    setShowMobileMenu(!showMobileMenu);
+  };
+
   const handleSearch = (e) => {
     const key = e.target.value;
     setQuery(key);
-    if (key.length > 2) {
-      setResults(
-        searchableItems.filter(
-          (item) =>
-            item.title.toLowerCase().includes(key.toLowerCase()) ||
-            item.description.toLowerCase().includes(key.toLowerCase())
-        )
+
+    if (key.length > 3) {
+      const filtered = searchableItems.filter(
+        (item) =>
+          item.title.toLowerCase().includes(key.toLowerCase()) ||
+          item.content.toLowerCase().includes(key.toLowerCase()) ||
+          item.description.toLowerCase().includes(key.toLowerCase())
       );
+      setResults(filtered);
     } else {
       setResults([]);
     }
@@ -222,10 +227,23 @@ export default function ProfessionalHeader() {
     setShowMobileMenu(false);
   };
 
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
-      <header className="bg-transparent m-3 sticky top-4 z-40">
-        <div className="bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 rounded-xl">
+      <motion.header
+        className={`fixed top-8 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled ? "" : "bg-transparent"
+        }`}
+      >
+        <div
+          className={`bg-white/90 shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] backdrop-blur-sm max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 rounded-xl`}
+        >
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
               <button
@@ -264,57 +282,91 @@ export default function ProfessionalHeader() {
               ))}
             </nav>
 
-            <div className="flex items-center gap-4">
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <div className="flex items-center space-x-4 gap-2">
+              {/* Search Bar  */}
+              <div className="relative shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-full flex items-center gap-1 px-2 py-1.5 group duration-300">
+                <Search className="w-5 h-5 rounded-full" />
                 <input
                   type="text"
+                  id="search"
                   value={query}
                   onChange={handleSearch}
-                  className="w-48 lg:w-64 pl-10 pr-4 py-2 text-sm bg-gray-100 border border-transparent rounded-full focus:bg-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400 outline-none transition-all"
-                  placeholder="Search issues..."
+                  className="w-full text-sm text-gray-900 placeholder:text-sm outline-none placeholder:text-gray-400 group-hover:placeholder:text-gray-600 duration-300  min-w-[280px] placeholder:hover:text-medium"
+                  placeholder="Search..."
                 />
-                <AnimatePresence>
-                  {query.length > 2 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden"
-                    >
-                      {results.length > 0 ? (
-                        <ul>
-                          {results.map((item) => (
-                            <li key={item.path}>
-                              <button
-                                onClick={() => {
-                                  handleNavigate(item.title, item.path);
-                                  setQuery("");
-                                  setResults([]);
-                                }}
-                                className="w-full text-left px-4 py-3 hover:bg-teal-50 transition-colors"
-                              >
-                                <p className="font-semibold text-sm text-gray-800">
-                                  {item.title}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {item.description}
-                                </p>
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="p-4 text-sm text-gray-500">
-                          No results found.
-                        </p>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
 
-              {isLoggedIn ? (
+                {/* Dropdown results */}
+                {query.length > 3 && results.length > 0 && (
+                  <ul className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-md mt-1 z-50 max-h-60 overflow-hidden">
+                    <p className="text-sm px-2 pt-2 pb-1 font-medium text-gray-500 border-b border-gray-200 flex items-center gap-2">
+                      Top Search Results
+                    </p>
+                    {results.map((item, index) => {
+                      const highlightMatch = (text) => {
+                        const parts = text.split(
+                          new RegExp(`(${query})`, "gi")
+                        );
+                        return parts.map((part, i) =>
+                          part.toLowerCase() === query.toLowerCase() ? (
+                            <mark
+                              key={i}
+                              className="bg-teal-500 text-[#ffffff] rounded-sm px-1"
+                            >
+                              {part}
+                            </mark>
+                          ) : (
+                            <span key={i}>{part}</span>
+                          )
+                        );
+                      };
+
+                      return (
+                        <li
+                          key={index}
+                          className="group px-2 py-2 hover:bg-slate-100 cursor-pointer text-sm duration-300 border-b border-gray-200 flex items-center gap-3 w-full"
+                          onClick={() => {
+                            navigate(item.path);
+                            setQuery("");
+                            setResults([]);
+                          }}
+                        >
+                          {/* Icon */}
+                          <span className="flex-shrink-0">
+                            <CornerUpRight className="w-6 h-6 text-gray-600 p-1 bg-slate-100 rounded-md" />
+                          </span>
+
+                          {/* Text + Hover Tick */}
+                          <div className="flex flex-col overflow-hidden w-full">
+                            <div className="flex items-center justify-between w-full">
+                              <span className="font-semibold text-[13.5px] truncate">
+                                {highlightMatch(item.title)}
+                              </span>
+                            </div>
+
+                            <span className="text-gray-500 text-xs truncate w-full">
+                              {highlightMatch(item.description)}
+                            </span>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+
+                {query.length > 1 && results.length === 0 && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-sm mt-1 z-50 p-2.5 text-sm text-gray-500">
+                    No results found ...
+                  </div>
+                )}
+              </div>
+              {!isLoggedIn ? (
+                <button
+                  onClick={() => navigate("/login")}
+                  className="px-5 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 duration-500 cursor-pointer rounded-lg  focus:outline-none  transition-colors"
+                >
+                  Login
+                </button>
+              ) : (
                 <div className="relative">
                   <button
                     ref={userIconRef}
@@ -339,7 +391,7 @@ export default function ProfessionalHeader() {
                           </p>
                           <p className="text-xs text-gray-500">Welcome back!</p>
                         </div>
-                        <div className="">
+                        <div>
                           <button
                             onClick={() => {
                               setShowUserDropdown(false);
@@ -371,15 +423,7 @@ export default function ProfessionalHeader() {
                     )}
                   </AnimatePresence>
                 </div>
-              ) : (
-                <button
-                  onClick={() => navigate("/login")}
-                  className="px-5 py-2 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 transition-colors cursor-pointer rounded-full focus:outline-none"
-                >
-                  Login
-                </button>
               )}
-
               <div className="lg:hidden">
                 <button
                   onClick={() => setShowMobileMenu(true)}
@@ -391,7 +435,7 @@ export default function ProfessionalHeader() {
             </div>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       <AnimatePresence>
         {showMobileMenu && (
