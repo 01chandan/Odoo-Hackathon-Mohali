@@ -10,8 +10,6 @@ import {
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
 
-const ITEMS_PER_PAGE = 6;
-
 function getStatusColor(status) {
   switch (status) {
     case "Reported":
@@ -26,7 +24,6 @@ function getStatusColor(status) {
       return "bg-gray-300";
   }
 }
-
 function formatDate(dateString) {
   const options = { month: "short", day: "numeric" };
   return new Date(dateString).toLocaleDateString("en-US", options);
@@ -97,7 +94,7 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.1 }}
-            className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+            className="origin-top-right absolute left-0 mt-2 w-46 rounded-md bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] z-10"
           >
             <div className="py-1" role="menu">
               {options.map((option) => (
@@ -136,7 +133,7 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
   };
 
   return (
-    <header className="py-6 px-4 md:px-8">
+    <header className="py-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 md:gap-4 flex-wrap">
           <Dropdown
@@ -176,6 +173,17 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
             placeholder="Search by title or location..."
           />
         </div>
+        <div className="flex items-center gap-2 md:gap-4">
+          <button className="w-full px-5 py-2 text-sm font-medium text-[#000000] shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-md hover:bg-gray-200 transition-colors duration-500 cursor-pointer">
+            My Issue
+          </button>
+          <button
+            onClick={() => setIsOpenIssuePopup(true)}
+            className="w-full px-5 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 transition-colors duration-500 cursor-pointer whitespace-nowrap"
+          >
+            Report New Issue
+          </button>
+        </div>
       </div>
     </header>
   );
@@ -197,7 +205,7 @@ const IssueCard = ({ issue, index }) => {
 
   return (
     <motion.div
-      className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col"
+      className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col cursor-pointer"
       variants={cardVariants}
       layout
     >
@@ -307,6 +315,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 };
 
 export default function App() {
+  const [isOpenIssuePopup, setIsOpenIssuePopup] = useState(false);
+  console.log(isOpenIssuePopup);
+
   const [filters, setFilters] = useState({
     category: "All",
     status: "All",
@@ -376,7 +387,7 @@ export default function App() {
     }
   }, [location]);
 
-  const filteredIssues = issuesData.filter((issue) => {
+  const filteredIssues = issuesData?.filter((issue) => {
     if (filters.category !== "All" && issue.category !== filters.category)
       return false;
     if (filters.status !== "All" && issue.status !== filters.status)
@@ -412,7 +423,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className=" bg-white">
       <Navbar />
       <div className="min-h-screen bg-gray-50 font-sans">
         <div className="container mx-auto px-4">
@@ -421,6 +432,7 @@ export default function App() {
             setFilters={setFilters}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
+            setIsOpenIssuePopup={setIsOpenIssuePopup}
           />
           <main>
             <AnimatePresence>
@@ -452,6 +464,7 @@ export default function App() {
             onPageChange={setCurrentPage}
           />
         </div>
+        {isOpenIssuePopup && <IssuePopup />}
       </div>
       <Footer />
     </div>
