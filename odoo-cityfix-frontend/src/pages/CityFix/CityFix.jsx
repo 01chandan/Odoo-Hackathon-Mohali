@@ -135,6 +135,7 @@ const Header = ({
   searchQuery,
   setSearchQuery,
   setIsOpenIssuePopup,
+  setMyIssues,
 }) => {
   const handleFilterChange = (filterName) => (value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
@@ -352,7 +353,8 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [location, setLocation] = useState(null);
   const [issuesData, setIssuesData] = useState([]);
-
+  const userData = JSON.parse(localStorage.getItem("user_data")) || {};
+  const userEmail = userData.email || "";
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -367,53 +369,48 @@ export default function App() {
     );
   }, []);
 
-  useEffect(() => {
-    const loadIssues = async () => {
-      const rawIssues = JSON.parse(localStorage.getItem("issues_data")) || [];
-      const resolved = await Promise.all(
-        rawIssues.map(async (issue) => {
-          const lat = issue.latitude;
-          const lon = issue.longitude;
-          const address = await reverseGeocode(lat, lon);
-          const status = issue?.status || "Reported";
-
-          let distance = 0;
-          if (location) {
-            distance = calculateDistance(
-              location.latitude,
-              location.longitude,
-              lat,
-              lon
-            );
-          }
-
-          return {
-            id: issue.id,
-            email: issue.users_table?.email || "Unknown",
-            category: issue.categories?.name || "Unknown",
-            title: issue.title,
-            status,
-            statusColor: getStatusColor(status),
-            date: formatDate(issue.created_at),
-            since: calculateSince(issue.created_at),
-            distance,
-            location: { latitude: lat, longitude: lon },
-            address,
-            imageUrl:
-              issue.issue_photos?.[0]?.image_url ||
-              "https://placehold.co/600x400?text=No+Image",
-          };
-        })
-      );
-      setIssuesData(resolved);
-    };
-
+useEffect(() => {
+  // Load issues instantly from localStorage
+  const rawIssues = JSON.parse(localStorage.getItem("issues_data")) || [];
+  const resolved = rawIssues.map((issue) => {
+    const lat = issue.latitude;
+    const lon = issue.longitude;
+    const status = issue?.status || "Reported";
+    let distance = 0;
     if (location) {
-      loadIssues();
+      distance = calculateDistance(
+        location.latitude,
+        location.longitude,
+        lat,
+        lon
+      );
     }
-  }, [location]);
+    return {
+      id: issue.id,
+      email: issue.users_table?.email || "Unknown",
+      category: issue.categories?.name || "Unknown",
+      title: issue.title,
+      status,
+      statusColor: getStatusColor(status),
+      date: formatDate(issue.created_at),
+      since: calculateSince(issue.created_at),
+      distance,
+      location: { latitude: lat, longitude: lon },
+      address: issue.address || "Address not available", // Use address from API or fallback
+      imageUrl:
+        issue.issue_photos?.[0]?.image_url ||
+        "https://placehold.co/600x400?text=No+Image",
+    };
+  });
+  setIssuesData(resolved);
+}, []); // Only run once on mount
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [filters, searchQuery, myIssues]);
 
   const filteredIssues = issuesData?.filter((issue) => {
+    if (myIssues && issue.email !== userEmail) return false;
     if (filters.category !== "All" && issue.category !== filters.category)
       return false;
     if (filters.status !== "All" && issue.status !== filters.status)
@@ -469,6 +466,7 @@ export default function App() {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             setIsOpenIssuePopup={setIsOpenIssuePopup}
+            setMyIssues={setMyIssues}
           />
           <main>
             <AnimatePresence>
