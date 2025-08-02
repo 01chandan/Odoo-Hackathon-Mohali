@@ -519,6 +519,7 @@ export default function ReportIssueModal({ onClose }) {
         return response.json();
       })
       .then((response) => {
+        console.log(response);
         if (response.error) {
           triggerAlert(response.error);
           setTimeout(() => {
@@ -533,7 +534,7 @@ export default function ReportIssueModal({ onClose }) {
           setShowSuccess(true);
           setTimeout(() => {
             onClose();
-          }, 2500);
+          }, 500);
           if (response.access) {
             setCookies(response);
           }
@@ -542,7 +543,12 @@ export default function ReportIssueModal({ onClose }) {
       .catch((error) => {
         console.error("Error: ", error);
       })
-      .finally(() => {});
+      .finally(() => {
+        setIsSubmitting(false);
+        setTimeout(() => {
+          onClose();
+        }, 500);
+      });
   };
 
   useEffect(() => {
