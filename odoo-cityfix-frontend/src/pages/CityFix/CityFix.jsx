@@ -218,8 +218,7 @@ const IssueCard = ({ issue, index }) => {
       variants={cardVariants}
       layout
       onClick={() => {
-        console.log(1);
-        navigate("/report-details", { state: issue });
+        navigate("/report-details", { state: issue.id });
       }}
     >
       <div className="relative">

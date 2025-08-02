@@ -1,41 +1,11 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import Footer from "./Footer";
+import Navbar from "./Navbar";
+import { useAlert } from "./GlobalAlert/AlertContext";
+import { getCookie, setCookies } from "../utils/cookies";
 
-const reportData = {
-  id: "CF-129",
-  title: "Pothole on main road",
-  imageUrl:
-    "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=2070&auto=format&fit=crop",
-  category: "Roads",
-  status: "In Progress",
-  reportedBy: "Anonymous",
-  timestamp: "June 02, 2025 - 10:34 AM",
-  description:
-    "The main road in C.G. Road, Ahmedabad, is riddled with potholes, making it dangerous and difficult to travel on. The issue is particularly bad near the main intersection, causing traffic to slow down significantly.",
-  location: {
-    address: "C.G. Road, Ahmedabad, Gujarat",
-    lat: 23.0225, // Latitude for the map marker
-    lng: 72.5714, // Longitude for the map marker
-  },
-  activity: [
-    {
-      status: 'Marked "In Progress"',
-      timestamp: "July 28, 04:15 PM",
-      actor: "Municipal Worker",
-    },
-    {
-      status: "Assigned to municipal worker",
-      timestamp: "July 26, 09:00 AM",
-      actor: "System",
-    },
-    {
-      status: "Reported by user",
-      timestamp: "June 02, 10:34 AM",
-      actor: "Jane Doe",
-    },
-  ],
-};
-
+// --- SVG ICONS ---
 const ArrowLeft = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -87,6 +57,21 @@ const User = (props) => (
     <circle cx="12" cy="7" r="4" />
   </svg>
 );
+
+const formatTimestamp = (timestamp) => {
+  const date = new Date(timestamp);
+  return date
+    .toLocaleString("en-US", {
+      month: "long", // August
+      day: "2-digit", // 01
+      year: "numeric", // 2025
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .replace(",", ""); // Remove comma between date and time
+};
+
 const Flag = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -133,9 +118,8 @@ const ActivityItem = ({ item, isLast }) => (
       <div className="h-3 w-3 rounded-full bg-white"></div>
     </div>
     <p className="font-semibold text-gray-800">{item.status}</p>
-    <p className="text-sm text-gray-500">
-      {item.timestamp} - by {item.actor}
-    </p>
+    <p className="text-sm text-gray-500">{formatTimestamp(item.changed_at)}</p>
+    <p className="text-sm text-gray-500">{item.description}</p>
   </div>
 );
 
@@ -173,6 +157,7 @@ const MapComponent = ({ lat, lng }) => {
     return () => {
       const existingScript = document.getElementById("google-maps-script");
       if (existingScript) {
+        // It's generally safe to leave the script, but this is good practice
         // existingScript.remove();
       }
     };
@@ -209,124 +194,231 @@ const MapComponent = ({ lat, lng }) => {
   );
 };
 
+// --- MAIN PAGE COMPONENT ---
+
 function ReportDetailsPage() {
-  const navigate = useNavigate();
+  const { triggerAlert } = useAlert();
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  const location = useLocation();
+  const [reportData, setReportData] = useState({});
+  const issue = location.state;
+
+  useEffect(() => {
+    if (issue) {
+      fetch(`http://127.0.0.1:8000/get-issue-details/`, {
+        method: "POST",
+        body: JSON.stringify({
+          issue: issue,
+          access_token: getCookie("access_token"),
+          refresh_token: getCookie("refresh_token"),
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("Failed to login");
+          return response.json();
+        })
+        .then((response) => {
+          if (response.error) {
+            triggerAlert(response.error);
+            setTimeout(() => {
+              triggerAlert("");
+            }, 3000);
+          } else {
+            triggerAlert(response.message);
+            setTimeout(() => {
+              triggerAlert("");
+            }, 3000);
+            const pro = response.issue;
+            const logs = response.logs;
+            // --- DUMMY DATA (with Lat/Lng) ---
+            const tempData = {
+              id: issue,
+              title: pro.title,
+              imageUrl: pro.issue_photos[0].image_url,
+              category: pro.categories.name,
+              status: pro.status,
+              reportedBy: pro.is_anonymous
+                ? "Anonymous"
+                : `${pro.users_table.first_name} ${pro.users_table.last_name}`,
+              timestamp: formatTimestamp(pro.created_at),
+              description: pro.description,
+              location: {
+                address: "C.G. Road, Ahmedabad, Gujarat",
+                lat: pro.latitude, // Latitude for the map marker
+                lng: pro.longitude, // Longitude for the map marker
+              },
+              activity: response.logs,
+            };
+            setReportData(tempData);
+            if (response.access) {
+              setCookies(response);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Error: ", error);
+        })
+        .finally(() => {});
+    }
+  }, [issue]);
+
   const handleReportSpam = () => {
-    // This is where you would trigger the API call to your backend
-    console.log("SIMULATING API CALL: Reporting issue as spam...");
-    // Using a custom modal/toast instead of alert() is recommended in a real app
-    alert(
-      "This issue has been reported as spam. An admin will review it shortly."
-    );
+    fetch(`http://127.0.0.1:8000/report-spam/`, {
+      method: "POST",
+      body: JSON.stringify({
+        issue: issue,
+        user: user.id,
+        access_token: getCookie("access_token"),
+        refresh_token: getCookie("refresh_token"),
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to login");
+        return response.json();
+      })
+      .then((response) => {
+        if (response.error) {
+          triggerAlert(response.error);
+          setTimeout(() => {
+            triggerAlert("");
+          }, 3000);
+        } else {
+          const pro = response.issue;
+          const logs = response.logs;
+          triggerAlert(
+            "This issue has been reported as spam. An admin will review it shortly."
+          );
+          setTimeout(() => {
+            triggerAlert("");
+          }, 3000);
+          if (response.access) {
+            setCookies(response);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error: ", error);
+      })
+      .finally(() => {});
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen font-sans">
-      <div className="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
-        <header className="mb-6 flex items-center justify-between">
-          <button
-            onClick={() => navigate("/track-issues")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Back to Issues</span>
-          </button>
-          <div className="text-sm text-gray-500 font-mono">
-            ID: {reportData.id}
-          </div>
-        </header>
-
-        <main className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="relative h-64 md:h-80 w-full">
-            <img
-              src={reportData.imageUrl}
-              alt={reportData.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            <div className="absolute bottom-0 left-0 p-6 md:p-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
-                {reportData.title}
-              </h1>
+    <div className=" bg-white">
+      <Navbar />
+      <div className="bg-gray-50 min-h-screen font-sans">
+        <div className="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+          <header className="mb-6 flex items-center justify-between">
+            <button
+              onClick={() => window.history.back()}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="font-medium">Back to Issues</span>
+            </button>
+            <div className="text-sm text-gray-500 font-mono">
+              ID: {reportData?.id}
             </div>
-          </div>
+          </header>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-6 md:p-8">
-            <div className="lg:col-span-2 space-y-8">
-              <div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-sm text-gray-500">
-                  <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-md">
-                    {reportData.category}
-                  </span>
-                  <span>|</span>
-                  <span>{reportData.timestamp}</span>
-                </div>
-                <p className="text-gray-700 leading-relaxed">
-                  {reportData.description}
-                </p>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-gray-800 mb-4">
-                  Activity
-                </h2>
-                <div className="space-y-6">
-                  {reportData.activity.map((item, index) => (
-                    <ActivityItem
-                      key={index}
-                      item={item}
-                      isLast={index === reportData.activity.length - 1}
-                    />
-                  ))}
-                </div>
+          <main className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="relative h-64 md:h-80 w-full">
+              <img
+                src={reportData?.imageUrl}
+                alt={reportData?.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 p-6 md:p-8">
+                <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+                  {reportData?.title}
+                </h1>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
-                <h3 className="font-bold text-gray-800 mb-3">Status</h3>
-                <div className="flex items-center justify-between mb-4">
-                  <StatusBadge status={reportData.status} />
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <User className="w-5 h-5 text-gray-400" />
-                  <span>
-                    Reported by:{" "}
-                    <span className="font-semibold">
-                      {reportData.reportedBy}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-6 md:p-8">
+              <div className="lg:col-span-2 space-y-8">
+                <div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-sm text-gray-500">
+                    <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-md">
+                      {reportData?.category}
                     </span>
-                  </span>
+                    <span>|</span>
+                    <span>{reportData?.timestamp}</span>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    {reportData?.description}
+                  </p>
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">
+                    Activity
+                  </h2>
+                  <div className="space-y-6">
+                    {reportData?.activity?.map((item, index) => (
+                      <ActivityItem
+                        key={index}
+                        item={item}
+                        isLast={index === reportData?.activity.length - 1}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
-                <h3 className="font-bold text-gray-800 mb-3">Location</h3>
-                <div className="flex items-start gap-3 text-sm text-gray-600 mb-4">
-                  <MapPin className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
-                  <span className="font-semibold">
-                    {reportData.location.address}
-                  </span>
+              <div className="space-y-6">
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                  <h3 className="font-bold text-gray-800 mb-3">Status</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <StatusBadge status={reportData?.status} />
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <User className="w-5 h-5 text-gray-400" />
+                    <span>
+                      Reported by:{" "}
+                      <span className="font-semibold">
+                        {reportData?.reportedBy}
+                      </span>
+                    </span>
+                  </div>
                 </div>
-                {/* --- GOOGLE MAP INTEGRATION --- */}
-                <div className="h-48 rounded-md overflow-hidden border border-gray-200">
-                  <MapComponent
-                    lat={reportData.location.lat}
-                    lng={reportData.location.lng}
-                  />
-                </div>
-              </div>
 
-              <button
-                onClick={handleReportSpam}
-                className="w-full flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 font-medium py-3 px-4 rounded-lg transition-colors border border-red-200"
-              >
-                <Flag className="w-5 h-5" />
-                <span>Report as Spam</span>
-              </button>
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                  <h3 className="font-bold text-gray-800 mb-3">Location</h3>
+                  <div className="flex items-start gap-3 text-sm text-gray-600 mb-4">
+                    <MapPin className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+                    <span className="font-semibold">
+                      {reportData?.location?.address}
+                    </span>
+                  </div>
+                  {/* --- GOOGLE MAP INTEGRATION --- */}
+                  <div className="h-48 rounded-md overflow-hidden border border-gray-200">
+                    <MapComponent
+                      lat={reportData?.location?.lat}
+                      lng={reportData?.location?.lng}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleReportSpam}
+                  className="w-full flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 font-medium py-3 px-4 rounded-lg transition-colors border border-red-200"
+                >
+                  <Flag className="w-5 h-5" />
+                  <span>Report as Spam</span>
+                </button>
+              </div>
             </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }
