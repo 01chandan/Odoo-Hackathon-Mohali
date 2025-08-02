@@ -237,13 +237,19 @@ const IssueCard = ({ issue, index }) => {
         />
         <div
           className={`absolute top-3 left-3 text-xs font-semibold text-white px-2 py-1 rounded-full ${
-            issue.category === "Streetlight"
-              ? "bg-orange-500"
-              : issue.category === "Road"
-              ? "bg-gray-600"
+            issue.category === "Roads"
+              ? "bg-orange-600"
+              : issue.category === "Lighting"
+              ? "bg-yellow-500"
               : issue.category === "Water Supply"
               ? "bg-blue-500"
-              : "bg-teal-500"
+              : issue.category === "Cleanliness"
+              ? "bg-green-500"
+              : issue.category === "Public Safety"
+              ? "bg-red-500"
+              : issue.category === "Obstructions"
+              ? "bg-purple-600"
+              : "bg-sky-500" // Fallback for any other category
           }`}
         >
           {issue.category}
@@ -270,7 +276,7 @@ const IssueCard = ({ issue, index }) => {
           {issue.description || issue.since}
         </p>
         <div className="flex items-center justify-between text-xs text-gray-500 mt-auto">
-          <div className="flex items-center overflow-hidden">
+          <div className="flex items-center overflow-hidden max-w-[70%] truncate">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
             <span className="truncate">{issue.address}</span>
           </div>
@@ -436,42 +442,6 @@ export default function App() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
-  const IssueCardSkeleton = () => {
-    return (
-      <div className="border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-5 w-full mx-auto">
-        <div className="animate-pulse">
-          {/* Header: Category Tag and Date */}
-          <div className="flex justify-between items-center mb-4">
-            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-md"></div>
-            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md"></div>
-          </div>
-
-          {/* Main Title */}
-          <div className="w-3/4 h-10 bg-gray-300 dark:bg-gray-700 rounded-md mb-6"></div>
-
-          {/* Divider */}
-          <div className="border-t border-gray-200 dark:border-gray-700 mb-4"></div>
-
-          {/* Status Line */}
-          <div className="flex items-center mb-3">
-            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-            <div className="h-5 w-2/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-3"></div>
-            <div className="flex-grow"></div>
-            <div className="h-5 w-3/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-4"></div>
-          </div>
-
-          {/* Timestamp */}
-          <div className="h-4 w-1/3 bg-gray-300 dark:bg-gray-700 rounded-md mb-5"></div>
-
-          {/* Location Info */}
-          <div className="flex items-center">
-            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-            <div className="h-5 w-4/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-3"></div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className=" bg-white">
@@ -496,10 +466,7 @@ export default function App() {
                   ? paginatedIssues.map((issue, index) => (
                       <IssueCard key={issue.id} issue={issue} index={index} />
                     ))
-                  : // Corrected Skeleton Loader:
-                    // Generate skeleton cards directly within the grid.
-                    // We map an array to create 3 placeholders.
-                    [...Array(3)].map((_, index) => (
+                  : [...Array(3)].map((_, index) => (
                       <div
                         key={index}
                         className="border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-5 w-full mx-auto"
@@ -543,7 +510,9 @@ export default function App() {
             onPageChange={setCurrentPage}
           />
         </div>
-        {isOpenIssuePopup && <IssuePopup />}
+        {isOpenIssuePopup && (
+          <IssuePopup onClose={() => setIsOpenIssuePopup(false)} />
+        )}
       </div>
       <Footer />
     </div>

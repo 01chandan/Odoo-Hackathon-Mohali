@@ -11,7 +11,6 @@ import ForgotPassword from "../pages/Password/ForgotPassword";
 import ResetPassword from "../pages/Password/ResetPassword";
 import CityFix from "../pages/CityFix/CityFix";
 import ReportDetails from "../components/ReportDetails"
-import admidDashboard from "../pages/Adminportal"
 import AdminPortal from "../pages/Adminportal";
 
 export default function AppRoutes() {
