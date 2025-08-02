@@ -608,7 +608,7 @@ export default function ReportIssueModal({ onClose }) {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative bg-white w-full max-w-lg rounded-xl shadow-2xl shadow-teal-500/10 flex flex-col h-[85vh] max-h-[750px]"
+        className="relative bg-white w-full max-w-lg rounded-xl shadow-3xl shadow-teal-500/10 flex flex-col h-[85vh] max-h-[750px]"
       >
         <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100">
           <div className="text-left">
@@ -672,6 +672,7 @@ export default function ReportIssueModal({ onClose }) {
             disabled={isSubmitting}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => onClose}
             className="w-full bg-teal-500 text-white font-bold py-3 text-base rounded-xl hover:bg-teal-600 transition-all duration-300 shadow-lg shadow-teal-500/30 disabled:bg-gray-400 disabled:shadow-none flex items-center justify-center"
           >
             {isSubmitting ? (
