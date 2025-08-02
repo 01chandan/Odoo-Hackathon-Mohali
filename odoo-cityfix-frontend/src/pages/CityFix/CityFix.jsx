@@ -461,7 +461,7 @@ export default function App() {
   return (
     <div className=" bg-white">
       <Navbar />
-      <div className="min-h-screen font-sans pt-20">
+      <div className="min-h-screen font-sans mt-24">
         <div className="container mx-auto px-4">
           <Header
             filters={filters}

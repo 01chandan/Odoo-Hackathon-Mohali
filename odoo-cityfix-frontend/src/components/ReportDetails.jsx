@@ -309,9 +309,9 @@ function ReportDetailsPage() {
   };
 
   return (
-    <div className=" bg-white">
+    <div className=" ">
       <Navbar />
-      <div className="bg-gray-50 min-h-screen font-sans">
+      <div className="bg-gray-50 min-h-screen font-sans pt-24">
         <div className="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
           <header className="mb-6 flex items-center justify-between">
             <button
