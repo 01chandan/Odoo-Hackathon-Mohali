@@ -81,13 +81,13 @@ const LocationDisplay = memo(() => {
   }, []);
 
   const locationIcons = {
-    loading: <Loader2 className="w-4 h-4 animate-spin" />,
+    loading: <Loader2 className="w-5 h-5 animate-spin" />,
     success: <MapPin className="w-4 h-4 text-teal-500" />,
     error: <AlertCircle className="w-4 h-4 text-red-500" />,
   };
 
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-600 ml-4 hidden sm:flex">
+    <div className="items-center gap-2 text-xs lg:text-sm text-gray-600 ml-4 hidden sm:flex">
       {locationIcons[status]}
       <span className="truncate max-w-[150px]">{location}</span>
     </div>
@@ -171,6 +171,14 @@ export default function ProfessionalHeader() {
     Home: "/",
     Issues: "/track-issues",
   };
+  useEffect(() => {
+    // Sync activeNav with current pathname
+    const pathToNav = {
+      "/": "Home",
+      "/track-issues": "Issues",
+    };
+    setActiveNav(pathToNav[location.pathname] || "Home");
+  }, [location.pathname]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -237,23 +245,28 @@ export default function ProfessionalHeader() {
   return (
     <>
       <motion.header
-        className={`fixed top-8 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-4 left-0 right-0 z-50 transition-all duration-300 px-3 ${
           scrolled ? "" : "bg-transparent"
         }`}
       >
         <div
-          className={`bg-white/90 shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] backdrop-blur-sm max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 rounded-xl`}
+          className={`bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] backdrop-blur-sm max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 rounded-xl`}
         >
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-12 md:h-14 lg:h-16">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleNavigate("Home", "/")}
                 className="flex-shrink-0 cursor-pointer"
               >
                 <img
+                  src="/CityFix.svg"
+                  className="h-9 lg:hidden"
+                  alt="CityFix Logo Small"
+                />
+                <img
                   src="/images/logo.svg"
-                  className="h-9"
-                  alt="CityFix Logo"
+                  className="hidden lg:block h-9"
+                  alt="CityFix Logo Large"
                 />
               </button>
               <LocationDisplay />
@@ -264,12 +277,17 @@ export default function ProfessionalHeader() {
                 <button
                   key={item}
                   onClick={() => handleNavigate(item, link)}
-                  className="relative px-4 py-2 text-sm font-medium text-gray-600 hover:text-teal-600 transition-colors duration-300 rounded-lg"
+                  className={`relative px-4 py-2 text-sm font-medium transition-colors duration-300 rounded-lg cursor-pointer ${
+                    activeNav === item
+                      ? "bg-teal-50 text-teal-600"
+                      : "text-gray-600 hover:text-teal-600"
+                  }`}
                 >
+                  <span className="relative z-10">{item}</span>
                   {activeNav === item && (
                     <motion.span
                       layoutId="activePill"
-                      className="absolute inset-0 bg-teal-50 rounded-lg z-0"
+                      className="absolute inset-0 bg-teal-100/40 rounded-lg z-0"
                       transition={{
                         type: "spring",
                         stiffness: 300,
@@ -277,30 +295,26 @@ export default function ProfessionalHeader() {
                       }}
                     />
                   )}
-                  <span className="relative z-10">{item}</span>
                 </button>
               ))}
             </nav>
 
-            <div className="flex items-center space-x-4 gap-2">
+            <div className="flex items-center space-x-2 lg:space-x-4 gap-2">
               {/* Search Bar  */}
-              <div className="relative shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-full flex items-center gap-1 px-2 py-1.5 group duration-300">
-                <Search className="w-5 h-5 rounded-full" />
+              <div className="relative shadow-[0_3px_3px_rgb(10,10,10,0.2)] border border-gray-300 rounded-full flex items-center gap-1 px-2 py-1 lg:py-1.5 group duration-300">
+                <Search className="w-4 h-4 lg:w-5 lg:h-5 rounded-full" />
                 <input
                   type="text"
                   id="search"
                   value={query}
                   onChange={handleSearch}
-                  className="w-full text-sm text-gray-900 placeholder:text-sm outline-none placeholder:text-gray-400 group-hover:placeholder:text-gray-600 duration-300  min-w-[280px] placeholder:hover:text-medium"
+                  className="text-sm text-gray-900 lg:placeholder:text-sm outline-none placeholder:text-gray-400 group-hover:placeholder:text-gray-600 duration-300  w-[110px] lg:min-w-[280px] placeholder:hover:text-medium placeholder:text-xs"
                   placeholder="Search..."
                 />
 
                 {/* Dropdown results */}
                 {query.length > 3 && results.length > 0 && (
                   <ul className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-md mt-1 z-50 max-h-60 overflow-hidden">
-                    <p className="text-sm px-2 pt-2 pb-1 font-medium text-gray-500 border-b border-gray-200 flex items-center gap-2">
-                      Top Search Results
-                    </p>
                     {results.map((item, index) => {
                       const highlightMatch = (text) => {
                         const parts = text.split(
@@ -362,7 +376,7 @@ export default function ProfessionalHeader() {
               {!isLoggedIn ? (
                 <button
                   onClick={() => navigate("/login")}
-                  className="px-5 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 duration-500 cursor-pointer rounded-lg  focus:outline-none  transition-colors"
+                  className="px-4 lg:px-5 py-2 text-xs lg:text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 duration-500 cursor-pointer rounded-lg  focus:outline-none  transition-colors"
                 >
                   Login
                 </button>

@@ -218,7 +218,7 @@ const IssueCard = ({ issue, index }) => {
 
   return (
     <motion.div
-      className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col cursor-pointer"
+      className="bg-white rounded-xl overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col cursor-pointer shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]"
       variants={cardVariants}
       layout
       onClick={() => {
@@ -261,7 +261,7 @@ const IssueCard = ({ issue, index }) => {
           {issue.date}
         </div>
       </div>
-      <div className="p-4 flex flex-col flex-grow">
+      <div className="p-4 flex flex-col flex-grow border-t border-gray-300">
         <div className="flex items-center justify-between mb-1">
           <p className="text-sm font-bold text-gray-800 text-right">
             {issue.title}
@@ -338,7 +338,6 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
 export default function App() {
   const [isOpenIssuePopup, setIsOpenIssuePopup] = useState(false);
-  console.log(isOpenIssuePopup);
 
   const [filters, setFilters] = useState({
     category: "All",
@@ -445,11 +444,12 @@ export default function App() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+  console.log(filteredIssues);
 
   return (
     <div className=" bg-white">
       <Navbar />
-      <div className="min-h-screen font-sans">
+      <div className="min-h-screen font-sans pt-20">
         <div className="container mx-auto px-4">
           <Header
             filters={filters}
