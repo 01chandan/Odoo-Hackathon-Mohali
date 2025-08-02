@@ -53,7 +53,7 @@ def register_user(request):
         if auth_response.user and not auth_response.user.email_confirmed_at:
             supabase.table("users_table").insert(
                 {
-                    "id":  str(uuid.uuid4()),
+                    "id": str(uuid.uuid4()),
                     "email": email,
                     "first_name": first_name,
                     "last_name": last_name,
@@ -105,14 +105,14 @@ def verify_email(request):
 
         email = user.email
 
-        supabase.table("users_table").update({"is_verified": True, "updated_at": "now()"}).eq(
-            "email", email
-        ).execute()
+        supabase.table("users_table").update(
+            {"is_verified": True, "updated_at": "now()"}
+        ).eq("email", email).execute()
 
         return JsonResponse({"message": "Email verified successfully"}, status=200)
 
     except Exception as e:
-        print("error: ",e)
+        print("error: ", e)
         return JsonResponse(
             {"error": "Invalid or expired verification token"}, status=201
         )
@@ -134,7 +134,10 @@ def login_user(request):
             )
 
         user_record = (
-            supabase.table("users_table").select("is_verified").eq("email", email).execute()
+            supabase.table("users_table")
+            .select("is_verified")
+            .eq("email", email)
+            .execute()
         )
         if not user_record.data:
             return JsonResponse({"error": "User not found"}, status=201)
@@ -146,10 +149,17 @@ def login_user(request):
             access_token = auth_response.session.access_token
             refresh_token = auth_response.session.refresh_token
 
-            user_data = supabase.table("users_table").select("*").eq("email", email).execute()
-            issues_record = (
-                supabase.table("issues").select("*").execute()
+            user_data = (
+                supabase.table("users_table").select("*").eq("email", email).execute()
             )
+            issues_record = (
+                supabase.table("issues")
+                .select(
+                    "*, categories(name), users_table(first_name, last_name, email), issue_photos(image_url), issue_status_logs(status, changed_at)"
+                )
+                .execute()
+            )
+
             if user_data.data:
                 return JsonResponse(
                     {
@@ -157,7 +167,7 @@ def login_user(request):
                         "access": access_token,
                         "refresh": refresh_token,
                         "user": user_data.data[0],
-                        "issues": issues_record
+                        "issues": issues_record.data,
                     },
                     status=200,
                 )
@@ -276,7 +286,10 @@ def edit_profile_data(request):
         ).eq("email", tempData["email"]).execute()
 
         user = (
-            supabase.table("users_table").select("*").eq("email", tempData["email"]).execute()
+            supabase.table("users_table")
+            .select("*")
+            .eq("email", tempData["email"])
+            .execute()
         )
         data = {}
         if user.data:

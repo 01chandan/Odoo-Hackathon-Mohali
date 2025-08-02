@@ -7,109 +7,59 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
-//  Sample Data
-const issuesData = [
-  {
-    id: 1,
-    category: "Streetlight",
-    title: "Streetlight not working",
-    status: "In Progress",
-    statusColor: "bg-yellow-500",
-    date: "Aug 19",
-    since: "since last 2 days",
-    distance: 2.8,
-    location: "geeta bridge, ahmedabad, gujarat",
-    imageUrl: "https://placehold.co/600x400/1a202c/ffffff?text=Streetlight",
-  },
-  {
-    id: 2,
-    category: "Road",
-    title: "Pothole on main road",
-    status: "Reported",
-    statusColor: "bg-red-500",
-    date: "Jun 02",
-    description:
-      "The main road in xg road ahmedabad, is riddled with potholes, making it dangerous and difficult to travel on.",
-    distance: 1.1,
-    location: "C.G road, ahmedabad, gujarat",
-    imageUrl: "https://placehold.co/600x400/4a5568/ffffff?text=Pothole",
-  },
-  {
-    id: 3,
-    category: "Garbage Collection",
-    title: "Garbage not collected",
-    status: "Completed",
-    statusColor: "bg-green-500",
-    date: "Jun 25",
-    description:
-      "Garbage is not collected since week it’s smell bad and very difficult to leave here.",
-    distance: 1.1,
-    location: "I.T society, ahmedabad, gujarat",
-    imageUrl: "https://placehold.co/600x400/718096/ffffff?text=Garbage",
-  },
-  {
-    id: 4,
-    category: "Streetlight",
-    title: "Flickering streetlight",
-    status: "Reported",
-    statusColor: "bg-red-500",
-    date: "Aug 14",
-    since: "since last 5 days",
-    distance: 3.2,
-    location: "near gandhi ashram, ahmedabad",
-    imageUrl: "https://placehold.co/600x400/1a202c/ffffff?text=Streetlight",
-  },
-  {
-    id: 5,
-    category: "Water Supply",
-    title: "Leaky pipe on sidewalk",
-    status: "In Progress",
-    statusColor: "bg-yellow-500",
-    date: "Aug 20",
-    description:
-      "Constant water leakage from the main pipeline is causing water logging.",
-    distance: 0.5,
-    location: "maninagar, ahmedabad, gujarat",
-    imageUrl: "https://placehold.co/600x400/2c5282/ffffff?text=Water+Leak",
-  },
-  {
-    id: 6,
-    category: "Garbage Collection",
-    title: "Overflowing dustbin",
-    status: "Reported",
-    statusColor: "bg-red-500",
-    date: "Aug 21",
-    description: "The public dustbin has been overflowing for three days now.",
-    distance: 1.5,
-    location: "navrangpura, ahmedabad, gujarat",
-    imageUrl: "https://placehold.co/600x400/718096/ffffff?text=Garbage",
-  },
-  {
-    id: 7,
-    category: "Road",
-    title: "Cracked pavement",
-    status: "Completed",
-    statusColor: "bg-green-500",
-    date: "Jul 10",
-    description:
-      "Pavement is cracked and uneven, posing a risk to pedestrians.",
-    distance: 4.0,
-    location: "satellite, ahmedabad, gujarat",
-    imageUrl: "https://placehold.co/600x400/4a5568/ffffff?text=Road",
-  },
-  {
-    id: 8,
-    category: "Streetlight",
-    title: "Dim Streetlight",
-    status: "In Progress",
-    statusColor: "bg-yellow-500",
-    date: "Aug 22",
-    since: "since last week",
-    distance: 0.8,
-    location: "bodakdev, ahmedabad, gujarat",
-    imageUrl: "https://placehold.co/600x400/1a202c/ffffff?text=Streetlight",
-  },
-];
+import Footer from "../../components/Footer";
+import Navbar from "../../components/Navbar";
+const rawIssues = JSON.parse(localStorage.getItem("issues_data"));
+
+function getStatusColor(status) {
+  switch (status) {
+    case "Reported":
+      return "bg-gray-500";
+    case "In Progress":
+      return "bg-yellow-500";
+    case "Resolved":
+      return "bg-green-500";
+    case "Rejected":
+      return "bg-red-500";
+    default:
+      return "bg-gray-300";
+  }
+}
+
+function formatDate(dateString) {
+  const options = { month: "short", day: "numeric" };
+  return new Date(dateString).toLocaleDateString("en-US", options);
+}
+
+function calculateSince(dateString) {
+  const now = new Date();
+  const then = new Date(dateString);
+  const daysDiff = Math.floor((now - then) / (1000 * 60 * 60 * 24));
+  return `since last ${daysDiff} day${daysDiff !== 1 ? "s" : ""}`;
+}
+
+const issuesData = rawIssues.map((issue) => {
+  const latestStatusLog =
+    issue.issue_status_logs?.[issue.issue_status_logs.length - 1];
+  const status = latestStatusLog?.status || issue.status;
+
+  return {
+    id: issue.id,
+    category: issue.categories?.name || "Unknown",
+    title: issue.title,
+    status: status,
+    statusColor: getStatusColor(status),
+    date: formatDate(issue.created_at),
+    since: calculateSince(issue.created_at),
+    distance: 0, // 🔧 You can calculate this based on user location and issue.latitude/longitude
+    location: `lat: ${issue.latitude}, lon: ${issue.longitude}`, // or reverse geocode to address
+    imageUrl:
+      issue.issue_photos?.[0]?.image_url ||
+      "https://placehold.co/600x400?text=No+Image",
+  };
+});
+
+console.log(issuesData);
 
 const ITEMS_PER_PAGE = 6;
 
@@ -407,44 +357,48 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <div className="container mx-auto px-4">
-        <Header
-          filters={filters}
-          setFilters={setFilters}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
-        <main>
-          <AnimatePresence>
-            <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-              initial="hidden"
-              animate="visible"
-            >
-              {paginatedIssues.length > 0 ? (
-                paginatedIssues.map((issue, index) => (
-                  <IssueCard key={issue.id} issue={issue} index={index} />
-                ))
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="col-span-full text-center py-16 text-gray-500"
-                >
-                  <h3 className="text-xl font-semibold">No issues found</h3>
-                  <p>Try adjusting your search or filter criteria.</p>
-                </motion.div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </main>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <div className="min-h-screen bg-gray-50 font-sans">
+        <div className="container mx-auto px-4">
+          <Header
+            filters={filters}
+            setFilters={setFilters}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+          <main>
+            <AnimatePresence>
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                initial="hidden"
+                animate="visible"
+              >
+                {paginatedIssues.length > 0 ? (
+                  paginatedIssues.map((issue, index) => (
+                    <IssueCard key={issue.id} issue={issue} index={index} />
+                  ))
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="col-span-full text-center py-16 text-gray-500"
+                  >
+                    <h3 className="text-xl font-semibold">No issues found</h3>
+                    <p>Try adjusting your search or filter criteria.</p>
+                  </motion.div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

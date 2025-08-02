@@ -169,7 +169,7 @@ const AuthPage = () => {
               triggerAlert("");
             }, 3000);
             localStorage.setItem("user_data", JSON.stringify(response.user));
-            localStorage.setItem("issues", JSON.stringify(response.issues));
+            localStorage.setItem("issues_data", JSON.stringify(response.issues));
             if (response.access) {
               setCookies(response);
             }
