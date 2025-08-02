@@ -33,45 +33,49 @@ const AnimatedCounter = ({ value, label, icon, delay = 0 }) => {
       return () => clearInterval(counter);
     }
   }, [isInView, value]);
-    
+
   return (
-    <motion.div 
+    <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, delay: delay * 0.2 }}
       className="text-center"
     >
-      <div className="text-teal-400 mb-4">{React.cloneElement(icon, { className: 'w-12 h-12 mx-auto' })}</div>
-      <p className="text-4xl md:text-5xl font-bold text-white mb-2">{displayValue.toLocaleString()}+</p>
+      <div className="text-teal-400 mb-4">
+        {React.cloneElement(icon, { className: "w-12 h-12 mx-auto" })}
+      </div>
+      <p className="text-4xl md:text-5xl font-bold text-white mb-2">
+        {displayValue.toLocaleString()}+
+      </p>
       <p className="text-base md:text-lg text-gray-400">{label}</p>
     </motion.div>
   );
 };
 
 const BeforeAfterSlider = ({ beforeImg, afterImg }) => {
-    const [sliderPosition, setSliderPosition] = useState(50);
-    const containerRef = useRef(null);
+  const [sliderPosition, setSliderPosition] = useState(50);
+  const containerRef = useRef(null);
 
-    const handleMove = (e) => {
-        if (!containerRef.current) return;
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = (e.clientX || e.touches[0].clientX) - rect.left;
-        const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
-        setSliderPosition(percent);
-    };
+  const handleMove = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+    const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+    setSliderPosition(percent);
+  };
 
-    const handleMouseDown = () => {
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('touchmove', handleMove);
-        window.addEventListener('mouseup', handleMouseUp);
-        window.addEventListener('touchend', handleMouseUp);
-    };
+  const handleMouseDown = () => {
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("touchmove", handleMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("touchend", handleMouseUp);
+  };
 
-    const handleMouseUp = () => {
-        window.removeEventListener('mousemove', handleMove);
-        window.removeEventListener('touchmove', handleMove);
-    };
+  const handleMouseUp = () => {
+    window.removeEventListener("mousemove", handleMove);
+    window.removeEventListener("touchmove", handleMove);
+  };
 
     return (
         <div ref={containerRef} className="relative w-full max-w-xl mx-auto aspect-[16/12] rounded-2xl overflow-hidden select-none cursor-ew-resize shadow-2xl shadow-teal-900/20">
@@ -503,13 +507,32 @@ const StatsSection = () => {
     <section className="bg-gray-900 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-extrabold text-white">Our Collective Impact</h2>
-          <p className="mt-4 max-w-3xl mx-auto text-lg text-teal-200">Every report contributes to a better tomorrow.</p>
+          <h2 className="text-4xl font-extrabold text-white">
+            Our Collective Impact
+          </h2>
+          <p className="mt-4 max-w-3xl mx-auto text-lg text-teal-200">
+            Every report contributes to a better tomorrow.
+          </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <AnimatedCounter value={15420} label="Issues Resolved" icon={<CheckCircle />} delay={0} />
-          <AnimatedCounter value={50000} label="Active Citizens" icon={<Users />} delay={1} />
-          <AnimatedCounter value={12000} label="Hours Saved for Authorities" icon={<Zap />} delay={2} />
+          <AnimatedCounter
+            value={15420}
+            label="Issues Resolved"
+            icon={<CheckCircle />}
+            delay={0}
+          />
+          <AnimatedCounter
+            value={50000}
+            label="Active Citizens"
+            icon={<Users />}
+            delay={1}
+          />
+          <AnimatedCounter
+            value={12000}
+            label="Hours Saved for Authorities"
+            icon={<Zap />}
+            delay={2}
+          />
         </div>
       </div>
     </section>

@@ -609,7 +609,7 @@ export default function ReportIssueModal({ onClose }) {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl shadow-teal-500/10 flex flex-col h-[85vh] max-h-[750px]"
+        className="relative bg-white w-full max-w-lg rounded-xl shadow-2xl shadow-teal-500/10 flex flex-col h-[85vh] max-h-[750px]"
       >
         <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100">
           <div className="text-left">
