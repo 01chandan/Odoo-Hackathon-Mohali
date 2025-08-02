@@ -7,6 +7,8 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
+import Navbar from "../../components/Navbar";
+
 //  Sample Data
 const issuesData = [
   {
@@ -408,6 +410,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
+      <Navbar />
       <div className="container mx-auto px-4">
         <Header
           filters={filters}
