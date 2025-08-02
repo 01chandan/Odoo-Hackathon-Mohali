@@ -526,6 +526,7 @@ def report_new_issue(request):
             )
             .execute()
         )
+        data["message"] = "success"
         data["issues"] = issues_record.data
 
         access = getattr(request, "access", None)
