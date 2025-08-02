@@ -1,7 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from . import db_clients
-import json, requests, uuid
+import json, requests
 from django.conf import settings
 from supabase import create_client
 
@@ -53,7 +52,6 @@ def register_user(request):
         if auth_response.user and not auth_response.user.email_confirmed_at:
             supabase.table("users_table").insert(
                 {
-                    "id": str(uuid.uuid4()),
                     "email": email,
                     "first_name": first_name,
                     "last_name": last_name,
@@ -294,6 +292,140 @@ def edit_profile_data(request):
         data = {}
         if user.data:
             data["user"] = user.data[0]
+
+        access = getattr(request, "access", None)
+        refresh = getattr(request, "refresh", None)
+        if access and refresh:
+            data["access"] = access
+            data["refresh"] = refresh
+        return JsonResponse(
+            data,
+            status=200,
+        )
+
+    except Exception as e:
+        print(e)
+        return JsonResponse(
+            {"error": "Authentication check failed", "authenticated": False}, status=201
+        )
+
+
+@csrf_exempt
+def get_issue_details(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST method allowed"}, status=405)
+
+    try:
+        user = getattr(request, "user", None)
+        if not user:
+            return JsonResponse({"authenticated": False}, status=201)
+
+        data = json.loads(request.body)
+        issue_id = data.get("issue")
+
+        data = {}
+        if not issue_id:
+            return JsonResponse({"error": "Missing issue ID"}, status=201)
+
+        # Fetch the issue with category and reporter info
+        issue_resp = (
+            supabase.table("issues")
+            .select(
+                "*, categories(name), users_table(first_name, last_name), issue_photos(image_url)"
+            )
+            .eq("id", issue_id)
+            .single()
+            .execute()
+        )
+
+        issue = issue_resp.data
+        data["issue"] = issue
+        if not issue:
+            return JsonResponse({"error": "Issue not found"}, status=201)
+
+        # Fetch issue status logs
+        logs_resp = (
+            supabase.table("issue_status_logs")
+            .select("*")
+            .eq("issue_id", issue_id)
+            .order("changed_at", desc=False)
+            .execute()
+        )
+        logs = logs_resp.data
+        print(logs)
+        data["logs"] = logs
+
+        access = getattr(request, "access", None)
+        refresh = getattr(request, "refresh", None)
+        if access and refresh:
+            data["access"] = access
+            data["refresh"] = refresh
+        return JsonResponse(
+            data,
+            status=200,
+        )
+
+    except Exception as e:
+        print(e)
+        return JsonResponse(
+            {"error": "Authentication check failed", "authenticated": False}, status=201
+        )
+
+
+@csrf_exempt
+def report_spam(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST method allowed"}, status=405)
+
+    try:
+        user = getattr(request, "user", None)
+        if not user:
+            return JsonResponse({"authenticated": False}, status=201)
+
+        data = json.loads(request.body)
+        issue_id = data.get("issue")
+        user_id = data.get("user")
+
+        data = {}
+        if not issue_id:
+            return JsonResponse({"error": "Missing issue ID"}, status=201)
+
+        # Fetch the issue with category and reporter info
+
+        supabase.table("flags").insert(
+            {
+                "flagged_by": user_id,
+                "issue_id": issue_id,
+                "flagged_at": "now()",
+            }
+        ).execute()
+
+        issue_resp = (
+            supabase.table("issues")
+            .select(
+                "*, categories(name), users_table(first_name, last_name), issue_photos(image_url), flags(flagged_by)"
+            )
+            .eq("id", issue_id)
+            .single()
+            .execute()
+        )
+
+        issue = issue_resp.data
+        data["issue"] = issue
+        if not issue:
+            return JsonResponse({"error": "Issue not found"}, status=201)
+
+        # Fetch issue status logs
+        logs_resp = (
+            supabase.table("issue_status_logs")
+            .select("*")
+            .eq("issue_id", issue_id)
+            .order("changed_at", desc=False)
+            .execute()
+        )
+        logs = logs_resp.data
+        print(logs)
+        data["logs"] = logs
 
         access = getattr(request, "access", None)
         refresh = getattr(request, "refresh", None)
