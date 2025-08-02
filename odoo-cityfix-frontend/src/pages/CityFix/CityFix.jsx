@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
+import IssuePopup from "../../components/ReportNewIssue";
 const rawIssues = JSON.parse(localStorage.getItem("issues_data"));
 console.log(rawIssues);
-const [isOpenIssuePopup, setIsOpenIssuePopup] = useState(false);
 function getStatusColor(status) {
   switch (status) {
     case "Reported":
@@ -26,7 +26,6 @@ function getStatusColor(status) {
       return "bg-gray-300";
   }
 }
-
 function formatDate(dateString) {
   const options = { month: "short", day: "numeric" };
   return new Date(dateString).toLocaleDateString("en-US", options);
@@ -179,7 +178,7 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
             My Issue
           </button>
           <button
-            onClick={() => setIsOpenIssuePopup(!isOpenIssuePopup)}
+            onClick={() => setIsOpenIssuePopup(true)}
             className="w-full px-5 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 transition-colors duration-500 cursor-pointer whitespace-nowrap"
           >
             Report New Issue
@@ -326,6 +325,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 };
 
 export default function App() {
+  const [isOpenIssuePopup, setIsOpenIssuePopup] = useState(false);
+  console.log(isOpenIssuePopup);
+
   const [filters, setFilters] = useState({
     category: "All",
     status: "All",
@@ -373,13 +375,14 @@ export default function App() {
   return (
     <div className=" bg-white">
       <Navbar />
-      <div className=" bg-gray-50 font-sans">
+      <div className="min-h-screen bg-gray-50 font-sans">
         <div className="container mx-auto px-4">
           <Header
             filters={filters}
             setFilters={setFilters}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
+            setIsOpenIssuePopup={setIsOpenIssuePopup}
           />
           <main>
             <AnimatePresence>
@@ -411,6 +414,7 @@ export default function App() {
             onPageChange={setCurrentPage}
           />
         </div>
+        {isOpenIssuePopup && <IssuePopup />}
       </div>
       <Footer />
     </div>
