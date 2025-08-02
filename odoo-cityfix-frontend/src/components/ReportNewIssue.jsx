@@ -30,7 +30,6 @@ const ImageUploader = ({ images, onImageChange, onRemoveImage }) => {
             key="dropzone"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
             onClick={() => fileInputRef.current && fileInputRef.current.click()}
             className="flex flex-col items-center justify-center w-full h-40 p-6 bg-teal-50/50 rounded-xl border-2 border-dashed border-teal-300/50 cursor-pointer hover:bg-teal-50 transition-colors"
           >
@@ -666,7 +665,7 @@ export default function ReportIssueModal({ onClose }) {
           </Section>
         </form>
 
-        <div className="flex-shrink-0 p-6 sm:p-8 border-t border-gray-100">
+        <div className="flex-shrink-0 p-4 border-t border-gray-100">
           <motion.button
             type="submit"
             form="report-issue-form"
