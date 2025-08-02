@@ -3,7 +3,7 @@ export const searchableItems = [
     title: "Home",
     description: "Explore and exchange skills with learners around the world.",
     content:
-      "Trade Skills, Transform Lives Join thousands of learners exchanging knowledge and skills. Teach what you know, learn what you need - all without spending a dime. Start Swapping Skills → Explore Skills",
+      "Community-Driven Platform CityFix Reimagined Report local issues, track their resolution, and be part of the change. Connect your community to a better future. Report Issue Now View Nearby Reports From Reality to Reality See the tangible impact of community reports. A small contribution makes our environment clean and green. Building a Better Tomorrow Our Contribution to a Cleaner World Every report, every resolution, every community action contributes to building sustainable, responsive cities for future generations. Global Community Connected citizens across 50+ cities worldwide 50+ Cities Environmental Impact Reduced carbon footprint through efficient reporting 2.5M CO₂ Saved Response Time Average issue resolution time improved significantly 65% Faster Ready to Make a Difference? Join thousands of citizens who are actively improving their communities, one report at a time. Start Reporting Today",
     path: "/",
   },
   {

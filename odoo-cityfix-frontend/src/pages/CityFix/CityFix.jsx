@@ -35,7 +35,7 @@ const categoryImageMap = {
   Roads: "/images/Roads.png",
   Lighting: "/images/Lighting.png",
   "Water Supply": "/images/water.png",
-  Cleanliness: "/images/cleanliness.png",
+  Cleanliness: "/images/cleaniness.png",
   "Public Safety": "/images/water.png",
   Obstructions: "/images/lighting.png",
 };
