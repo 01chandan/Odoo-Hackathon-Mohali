@@ -82,10 +82,10 @@ const Verification = () => {
     } else {
       return (
         <div className="relative">
-          <div className="w-20 h-20 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-            <Mail className="w-10 h-10 text-blue-600" />
+          <div className="w-20 h-20 mx-auto bg-teal-100 rounded-full flex items-center justify-center">
+            <Mail className="w-10 h-10 text-teal-600" />
           </div>
-          <div className="absolute inset-0 w-20 h-20 mx-auto border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 w-20 h-20 mx-auto border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin"></div>
         </div>
       );
     }
@@ -108,7 +108,7 @@ const Verification = () => {
       {/* <Navbar /> */}
 
       <div className="flex-1 flex items-center justify-center px-4 py-16">
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center border border-blue-100">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center border border-teal-100">
           <div className="space-y-6">
             <div className="relative">
               {getIcon()}
@@ -133,7 +133,7 @@ const Verification = () => {
                       ? "bg-red-50 text-red-800 border border-red-200"
                       : isVerified
                       ? "bg-green-50 text-green-800 border border-green-200"
-                      : "bg-blue-50 text-blue-800 border border-blue-200"
+                      : "bg-teal-50 text-teal-800 border border-teal-200"
                   }`}
                 >
                   {status}
@@ -143,13 +143,13 @@ const Verification = () => {
 
             {/* Countdown and redirect section - only show when verified */}
             {isVerified && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-blue-800 text-sm font-medium">
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                <p className="text-teal-800 text-sm font-medium">
                   Redirecting to home page in {countdown} seconds...
                 </p>
-                <div className="mt-3 w-full bg-blue-200 rounded-full h-1">
+                <div className="mt-3 w-full bg-teal-200 rounded-full h-1">
                   <div
-                    className="bg-blue-600 h-1 rounded-full transition-all duration-1000 ease-linear"
+                    className="bg-teal-600 h-1 rounded-full transition-all duration-1000 ease-linear"
                     style={{ width: `${(5 - countdown) * 20}%` }}
                   ></div>
                 </div>
@@ -161,7 +161,7 @@ const Verification = () => {
               {isVerified && (
                 <button
                   onClick={() => (window.location.href = "/")}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-sm"
+                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-sm"
                 >
                   Go to Home Page Now
                 </button>
