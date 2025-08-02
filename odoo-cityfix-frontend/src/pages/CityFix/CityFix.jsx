@@ -33,7 +33,7 @@ function formatDate(dateString) {
 
 const categoryImageMap = {
   Roads: "/images/Roads.png",
-  Lighting: "/images/lighting.png",
+  Lighting: "/images/Lighting.png",
   "Water Supply": "/images/water.png",
   Cleanliness: "/images/cleanliness.png",
   "Public Safety": "/images/water.png",
@@ -496,29 +496,29 @@ export default function App() {
                         <div className="animate-pulse">
                           {/* Header: Category Tag and Date */}
                           <div className="flex justify-between items-center mb-4">
-                            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
-                            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
+                            <div className="h-6 w-24 bg-gray-300 rounded-lg"></div>
+                            <div className="h-6 w-20 bg-gray-300 rounded-lg"></div>
                           </div>
 
                           {/* Main Title */}
-                          <div className="w-3/4 h-10 bg-gray-300 dark:bg-gray-700 rounded-lg mb-6"></div>
+                          <div className="w-3/4 h-10 bg-gray-300 rounded-lg mb-6"></div>
 
                           {/* Divider */}
                           <div className="border-t border-gray-200 dark:border-gray-700 mb-4"></div>
 
                           {/* Status Line */}
                           <div className="flex items-center mb-3">
-                            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-                            <div className="h-5 w-2/5 bg-gray-300 dark:bg-gray-700 rounded-lg ml-3"></div>
+                            <div className="h-5 w-5 rounded-full bg-gray-300"></div>
+                            <div className="h-5 w-2/5 bg-gray-300 rounded-lg ml-3"></div>
                           </div>
 
                           {/* Timestamp */}
-                          <div className="h-4 w-1/3 bg-gray-300 dark:bg-gray-700 rounded-lg mb-5"></div>
+                          <div className="h-4 w-1/3 bg-gray-300 rounded-lg mb-5"></div>
 
                           {/* Location Info */}
                           <div className="flex items-center">
-                            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-                            <div className="h-5 w-4/5 bg-gray-300 dark:bg-gray-700 rounded-lg ml-3"></div>
+                            <div className="h-5 w-5 rounded-full bg-gray-300"></div>
+                            <div className="h-5 w-4/5 bg-gray-300 rounded-lg ml-3"></div>
                           </div>
                         </div>
                       </div>

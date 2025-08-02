@@ -438,7 +438,7 @@ const BeforeAfterSection = () => {
   const isInView = useInView(ref, { once: true, amount: 0.3 });
   return (
     <section ref={ref} className="py-20 bg-white">
-      <div className="max-w-4xl aspect-square mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl  mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -629,7 +629,7 @@ export default function App() {
         {/* <NearbyReportsSection /> */}
         <BeforeAfterSection />
         <ImpactSection />
-        <StatsSection />
+        {/* <StatsSection /> */}
       </main>
       <Footer />
     </div>
