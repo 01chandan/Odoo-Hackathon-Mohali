@@ -10,6 +10,9 @@ import PublicRoute from "./PublicRoute";
 import ForgotPassword from "../pages/Password/ForgotPassword";
 import ResetPassword from "../pages/Password/ResetPassword";
 import CityFix from "../pages/CityFix/CityFix";
+import ReportDetails from "../components/ReportDetails"
+import admidDashboard from "../pages/Adminportal"
+import AdminPortal from "../pages/Adminportal";
 
 export default function AppRoutes() {
   return (
@@ -20,6 +23,8 @@ export default function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/report-details" element={<ReportDetails />} />
+        <Route path="/admin-dashboard" element={<AdminPortal />} />
 
         {/* Public route */}
         <Route
