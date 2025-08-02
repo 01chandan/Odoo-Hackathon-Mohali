@@ -11,6 +11,19 @@ body {
   font-display: swap;
 }
 
+.demo3-container {
+  height: 100vh;
+  position: fixed;
+  background: #0000005d;
+  width: 100vw;
+  top: 0px;
+  left: 0px;
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* @font-face {
   font-family: "Poppins";
   src: url("../../fonts/Poppins/Poppins-Bold.ttf") format("truetype");

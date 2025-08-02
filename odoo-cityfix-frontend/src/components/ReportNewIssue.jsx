@@ -145,7 +145,7 @@ export default function App() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="p-4 bg-teal-50/50 rounded-xl border-2 border-dashed border-teal-200"
+      className="p-4  bg-teal-50/50 rounded-xl border-2 border-dashed border-teal-200"
     >
       <div className="flex flex-col sm:flex-row gap-4">
         <button
@@ -337,7 +337,7 @@ export default function App() {
 
   // main Component
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
+    <div className=" demo3-container bg-gray-50 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md mx-auto">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
