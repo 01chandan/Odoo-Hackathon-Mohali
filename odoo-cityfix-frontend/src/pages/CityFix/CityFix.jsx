@@ -31,6 +31,17 @@ function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString("en-US", options);
 }
 
+const categoryImageMap = {
+  "Roads": "/images/Roads.png",
+  "Lighting": "/images/lighting.png",
+  "Water Supply": "/images/water.png",
+  "Cleanliness": "/images/cleanliness.png",
+  "Public Safety": "/images/water.png",
+  "Obstructions": "/images/lighting.png",
+};
+
+
+
 function calculateSince(dateString) {
   const now = new Date();
   const then = new Date(dateString);
@@ -228,7 +239,7 @@ const IssueCard = ({ issue, index }) => {
       <div className="relative">
         <img
           className="w-full h-40 object-cover"
-          src={issue.imageUrl}
+    src={categoryImageMap[issue.category]} 
           alt={issue.title}
           onError={(e) => {
             e.target.onerror = null;
