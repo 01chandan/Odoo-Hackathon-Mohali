@@ -30,7 +30,6 @@ const ImageUploader = ({ images, onImageChange, onRemoveImage }) => {
             key="dropzone"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
             onClick={() => fileInputRef.current && fileInputRef.current.click()}
             className="flex flex-col items-center justify-center w-full h-40 p-6 bg-teal-50/50 rounded-xl border-2 border-dashed border-teal-300/50 cursor-pointer hover:bg-teal-50 transition-colors"
           >
@@ -615,7 +614,7 @@ export default function ReportIssueModal({ onClose }) {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative bg-white w-full max-w-lg rounded-xl shadow-2xl shadow-teal-500/10 flex flex-col h-[85vh] max-h-[750px]"
+        className="relative bg-white w-full max-w-lg rounded-xl shadow-3xl shadow-teal-500/10 flex flex-col h-[85vh] max-h-[750px]"
       >
         <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100">
           <div className="text-left">
@@ -672,13 +671,14 @@ export default function ReportIssueModal({ onClose }) {
           </Section>
         </form>
 
-        <div className="flex-shrink-0 p-6 sm:p-8 border-t border-gray-100">
+        <div className="flex-shrink-0 p-4 border-t border-gray-100">
           <motion.button
             type="submit"
             form="report-issue-form"
             disabled={isSubmitting}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => onClose}
             className="w-full bg-teal-500 text-white font-bold py-3 text-base rounded-xl hover:bg-teal-600 transition-all duration-300 shadow-lg shadow-teal-500/30 disabled:bg-gray-400 disabled:shadow-none flex items-center justify-center"
           >
             {isSubmitting ? (

@@ -460,46 +460,52 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => {
-    const loadIssues = async () => {
-      const rawIssues = JSON.parse(localStorage.getItem("issues_data")) || [];
-      const resolved = await Promise.all(
-        rawIssues.map(async (issue) => {
-          const lat = issue.latitude;
-          const lon = issue.longitude;
-          const address = await reverseGeocode(lat, lon);
-          const status = issue?.status || "Reported";
+    // Load issues instantly from localStorage
+    const rawIssues = JSON.parse(localStorage.getItem("issues_data")) || [];
+    const resolved = rawIssues.map((issue) => {
+      const lat = issue.latitude;
+      const lon = issue.longitude;
+      const status = issue?.status || "Reported";
+      let distance = 0;
+      if (location) {
+        distance = calculateDistance(
+          location.latitude,
+          location.longitude,
+          lat,
+          lon
+        );
+      }
+      return {
+        id: issue.id,
+        category: issue.categories?.name || "Unknown",
+        title: issue.title,
+        reports: 28,
+        priority: "High",
+        status,
+        createdAt: formatDate(issue.created_at),
+        description: issue.description,
+        distance,
+        location: {
+          lat,
+          lng: lon,
+          address: issue.address || "Address not available",
+        },
+        images: issue.issue_photos || [],
+      };
+    });
+    setIssuesData(resolved);
 
-          let distance = 0;
-          if (location) {
-            distance = calculateDistance(
-              location.latitude,
-              location.longitude,
-              lat,
-              lon
-            );
-          }
-
-          return {
-            id: issue.id,
-            category: issue.categories?.name || "Unknown",
-            title: issue.title,
-            reports: 28,
-            priority: "High",
-            status,
-            createdAt: formatDate(issue.created_at),
-            description: issue.description,
-            distance,
-            location: { lat, lng: lon, address },
-            images: issue.issue_photos || [],
-          };
-        })
-      );
-      setIssuesData(resolved);
-    };
-
-    if (location) {
-      loadIssues();
-    }
+    // Optionally, update addresses asynchronously
+    rawIssues.forEach(async (issue, idx) => {
+      const lat = issue.latitude;
+      const lon = issue.longitude;
+      const address = await reverseGeocode(lat, lon);
+      setIssuesData((prev) => {
+        const updated = [...prev];
+        updated[idx].location.address = address;
+        return updated;
+      });
+    });
   }, [location]);
   console.log(issuesData);
   // Load Google Maps script
@@ -532,20 +538,19 @@ export default function AdminDashboard() {
     setIsModalOpen(false);
   };
 
-const handleSaveIssue = (issueToSave) => {
-  setIssuesData(
-    issuesData?.map((i) => (i.id === issueToSave.id ? issueToSave : i))
-  );
-};
+  const handleSaveIssue = (issueToSave) => {
+    setIssuesData(
+      issuesData?.map((i) => (i.id === issueToSave.id ? issueToSave : i))
+    );
+  };
 
-const handleDeleteIssue = (issueId) => {
-  setIssuesData(issuesData?.filter((i) => i.id !== issueId));
-};
-
+  const handleDeleteIssue = (issueId) => {
+    setIssuesData(issuesData?.filter((i) => i.id !== issueId));
+  };
 
   return (
     <div>
-      <main className="py-8 mt-32 bg-slate-50">
+      <main className="py-8 mt-32 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
             <div>
@@ -565,12 +570,12 @@ const handleDeleteIssue = (issueId) => {
               icon={<FileText className="w-6 h-6 text-amber-500" />}
             />
             <StatCard
-              title="In Review"
+              title="Resolved"
               value={stats.inReview}
               icon={<Eye className="w-6 h-6 text-blue-500" />}
             />
             <StatCard
-              title="Sent to Authority"
+              title="Reported"
               value={stats.sent}
               icon={<Send className="w-6 h-6 text-purple-500" />}
             />
