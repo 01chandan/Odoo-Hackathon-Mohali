@@ -225,8 +225,8 @@ export default function ProfessionalHeader() {
 
   return (
     <>
-        <motion.header className={`fixed top-8 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? '' : 'bg-transparent'}`}>
-        <div className={`bg-white/90 shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] backdrop-blur-sm max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 rounded-xl`}>
+        <motion.header className={`fixed top-8 left-0 right-0 z-50 transition-all duration-300  ${scrolled ? '' : 'bg-transparent'}`}>
+        <div className={`bg-white/90 shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] backdrop-blur-sm max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 rounded-xl `}>
           <div className="flex justify-between items-center h-16">
             
             <div className="flex items-center gap-2">
