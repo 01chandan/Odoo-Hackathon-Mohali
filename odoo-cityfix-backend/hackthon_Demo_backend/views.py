@@ -1,7 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from . import db_clients
-import json, requests, uuid
+import json, requests
 from django.conf import settings
 from supabase import create_client
 
@@ -53,7 +52,6 @@ def register_user(request):
         if auth_response.user and not auth_response.user.email_confirmed_at:
             supabase.table("users_table").insert(
                 {
-                    "id": str(uuid.uuid4()),
                     "email": email,
                     "first_name": first_name,
                     "last_name": last_name,
