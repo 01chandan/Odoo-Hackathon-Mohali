@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 env_path = os.path.join(BASE_DIR, "keys.env")
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
+
 load_dotenv(dotenv_path=env_path)
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG")
