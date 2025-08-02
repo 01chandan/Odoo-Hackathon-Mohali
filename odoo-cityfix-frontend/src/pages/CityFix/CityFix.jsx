@@ -83,11 +83,15 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
     <div className="relative inline-block text-left">
       <button
         type="button"
-        className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+        className="flex items-center justify-center w-full rounded-lg  shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] px-3 py-1.5 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-teal-500"
         onClick={() => setIsOpen(!isOpen)}
       >
         {selected === "All" || selected === "Any" ? label : selected}
-        <ChevronDown className="-mr-1 ml-2 h-5 w-5" />
+        <ChevronDown
+          className={`-mr-1 ml-2 h-4 w-4 duration-300 ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
+        />
       </button>
       <AnimatePresence>
         {isOpen && (
@@ -96,9 +100,9 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.1 }}
-            className="origin-top-right absolute left-0 mt-2 w-46 rounded-md bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] z-10"
+            className="origin-top-right absolute left-0 mt-2 w-46 rounded-lg bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] z-10"
           >
-            <div className="py-1" role="menu">
+            <div className="" role="menu">
               {options.map((option) => (
                 <a
                   href="#"
@@ -141,7 +145,7 @@ const Header = ({
   };
 
   return (
-    <header className="py-6">
+    <header className="py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 md:gap-4 flex-wrap">
           <Dropdown
@@ -171,23 +175,23 @@ const Header = ({
             onSelect={handleFilterChange("distance")}
           />
         </div>
-        <div className="relative group">
+        <div className="relative group bg-[#ffffff]">
           <Search className="absolute left-3 top-1/2 -mt-2.5 h-5 w-5 text-gray-400 group-hover:text-gray-600 duration-300" />
           <input
             type="text"
             value={searchQuery}
             onChange={handleSearch}
-            className="w-full pl-10 pr-4 py-2 text-sm text-gray-900 placeholder:text-sm outline-none placeholder:text-gray-400 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 min-w-[280px]"
+            className="w-full pl-10 pr-4 py-1.5 text-sm text-gray-900 placeholder:text-sm outline-none placeholder:text-gray-400 shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-lg focus:ring-[1.3px] duration-300 focus:ring-teal-500 focus:border-teal-500 min-w-[280px]"
             placeholder="Search by title or location..."
           />
         </div>
         <div className="flex items-center gap-2 md:gap-4">
-          <button className="w-full px-5 py-2 text-sm font-medium text-[#000000] shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-md hover:bg-gray-200 transition-colors duration-500 cursor-pointer">
+          <button className="w-full px-5 py-2 text-sm font-medium text-[#000000] shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-lg hover:bg-gray-200 transition-colors duration-500 cursor-pointer">
             My Issue
           </button>
           <button
             onClick={() => setIsOpenIssuePopup(true)}
-            className="w-full px-5 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 transition-colors duration-500 cursor-pointer whitespace-nowrap"
+            className="w-full px-5 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors duration-500 cursor-pointer whitespace-nowrap"
           >
             Report New Issue
           </button>
@@ -214,7 +218,7 @@ const IssueCard = ({ issue, index }) => {
 
   return (
     <motion.div
-      className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col cursor-pointer"
+      className="bg-white rounded-xl overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col cursor-pointer shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]"
       variants={cardVariants}
       layout
       onClick={() => {
@@ -248,7 +252,7 @@ const IssueCard = ({ issue, index }) => {
               ? "bg-red-500"
               : issue.category === "Obstructions"
               ? "bg-purple-600"
-              : "bg-sky-500" // Fallback for any other category
+              : "bg-sky-500"
           }`}
         >
           {issue.category}
@@ -257,8 +261,11 @@ const IssueCard = ({ issue, index }) => {
           {issue.date}
         </div>
       </div>
-      <div className="p-4 flex flex-col flex-grow">
-        <div className="flex items-center justify-between mb-2">
+      <div className="p-4 flex flex-col flex-grow border-t border-gray-300">
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-sm font-bold text-gray-800 text-right">
+            {issue.title}
+          </p>
           <div className="flex items-center">
             <span
               className={`w-3 h-3 rounded-full mr-2 ${issue.statusColor}`}
@@ -267,14 +274,11 @@ const IssueCard = ({ issue, index }) => {
               {issue.status}
             </p>
           </div>
-          <p className="text-sm font-bold text-gray-800 text-right">
-            {issue.title}
-          </p>
         </div>
-        <p className="text-sm text-gray-500 mb-3 h-10 flex-grow">
+        <p className="text-sm text-gray-500  h-10 flex-grow">
           {issue.description || issue.since}
         </p>
-        <div className="flex items-center justify-between text-xs text-gray-500 mt-auto">
+        <div className="flex items-center justify-between text-[13px] text-gray-500">
           <div className="flex items-center overflow-hidden max-w-[70%] truncate">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
             <span className="truncate">{issue.address}</span>
@@ -299,7 +303,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
   return (
     <div className="flex items-center justify-center py-8">
-      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+      <nav className="relative z-0 inline-flex rounded-lg shadow-sm -space-x-px">
         <button
           onClick={handlePrev}
           disabled={currentPage === 1}
@@ -334,7 +338,6 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
 export default function App() {
   const [isOpenIssuePopup, setIsOpenIssuePopup] = useState(false);
-  console.log(isOpenIssuePopup);
 
   const [filters, setFilters] = useState({
     category: "All",
@@ -441,11 +444,12 @@ export default function App() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+  console.log(filteredIssues);
 
   return (
     <div className=" bg-white">
       <Navbar />
-      <div className="min-h-screen bg-gray-50 font-sans">
+      <div className="min-h-screen font-sans mt-24">
         <div className="container mx-auto px-4">
           <Header
             filters={filters}
@@ -473,12 +477,12 @@ export default function App() {
                         <div className="animate-pulse">
                           {/* Header: Category Tag and Date */}
                           <div className="flex justify-between items-center mb-4">
-                            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-md"></div>
-                            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md"></div>
+                            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
+                            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
                           </div>
 
                           {/* Main Title */}
-                          <div className="w-3/4 h-10 bg-gray-300 dark:bg-gray-700 rounded-md mb-6"></div>
+                          <div className="w-3/4 h-10 bg-gray-300 dark:bg-gray-700 rounded-lg mb-6"></div>
 
                           {/* Divider */}
                           <div className="border-t border-gray-200 dark:border-gray-700 mb-4"></div>
@@ -486,16 +490,16 @@ export default function App() {
                           {/* Status Line */}
                           <div className="flex items-center mb-3">
                             <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-                            <div className="h-5 w-2/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-3"></div>
+                            <div className="h-5 w-2/5 bg-gray-300 dark:bg-gray-700 rounded-lg ml-3"></div>
                           </div>
 
                           {/* Timestamp */}
-                          <div className="h-4 w-1/3 bg-gray-300 dark:bg-gray-700 rounded-md mb-5"></div>
+                          <div className="h-4 w-1/3 bg-gray-300 dark:bg-gray-700 rounded-lg mb-5"></div>
 
                           {/* Location Info */}
                           <div className="flex items-center">
                             <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-                            <div className="h-5 w-4/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-3"></div>
+                            <div className="h-5 w-4/5 bg-gray-300 dark:bg-gray-700 rounded-lg ml-3"></div>
                           </div>
                         </div>
                       </div>

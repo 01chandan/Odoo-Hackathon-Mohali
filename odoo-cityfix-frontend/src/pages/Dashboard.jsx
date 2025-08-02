@@ -74,7 +74,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8 pt-32">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-8 py-6 border-b border-gray-100">

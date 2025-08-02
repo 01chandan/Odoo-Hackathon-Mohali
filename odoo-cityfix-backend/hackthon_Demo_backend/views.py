@@ -442,3 +442,104 @@ def report_spam(request):
         return JsonResponse(
             {"error": "Authentication check failed", "authenticated": False}, status=201
         )
+
+
+@csrf_exempt
+def report_new_issue(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST method allowed"}, status=405)
+
+    try:
+        user = getattr(request, "user", None)
+        if not user:
+            return JsonResponse({"authenticated": False}, status=201)
+
+        data = json.loads(request.body)
+        formData_raw = data.get("formData")
+        formData = (
+            json.loads(formData_raw) if isinstance(formData_raw, str) else formData_raw
+        )
+        print(1)
+        user_id = data.get("user")
+        data = {}
+        if not formData:
+            return JsonResponse({"error": "Missing issue data"}, status=201)
+
+        # 1. Get category_id for "Lighting"
+        category_resp = (
+            supabase.table("categories")
+            .select("id")
+            .eq("name", formData["category"])
+            .execute()
+        )
+        if not category_resp.data:
+            raise Exception(f"Category '{formData['category']}' not found")
+        category_id = category_resp.data[0]["id"]
+
+        print(
+            2,
+            formData,
+            formData["description"][:30],
+            category_id,
+            user_id,
+            # formData["location"]["lat"],
+            # formData["location"]["lng"],
+        )
+
+        issue_payload = {
+            "title": formData["description"][:30],
+            "description": formData["description"],
+            "category_id": category_id,
+            "user_id": user_id,
+            "latitude": formData["location"]["lat"],
+            "longitude": formData["location"]["lng"],
+            "is_anonymous": False,
+            "status": "Reported",
+            "created_at": "now()",
+            "updated_at": "now()",
+        }
+        print(3)
+
+        issue_resp = supabase.table("issues").insert(issue_payload).execute()
+        if not issue_resp.data:
+            raise Exception("Failed to insert issue")
+        issue_id = issue_resp.data[0]["id"]
+
+        supabase.table("issue_status_logs").insert(
+            {"issue_id": issue_id, "status": "Reported", "changed_at": "now()"}
+        ).execute()
+        print(4)
+
+        image_url = formData["images"]
+        supabase.table("issue_photos").insert(
+            {
+                "issue_id": issue_id,
+                "image_url": image_url,
+                "uploaded_at": "now()",
+            }
+        ).execute()
+
+        issues_record = (
+            supabase.table("issues")
+            .select(
+                "*, categories(name), users_table(first_name, last_name, email), issue_photos(image_url), issue_status_logs(status, changed_at)"
+            )
+            .execute()
+        )
+        data["issues"] = issues_record.data
+
+        access = getattr(request, "access", None)
+        refresh = getattr(request, "refresh", None)
+        if access and refresh:
+            data["access"] = access
+            data["refresh"] = refresh
+        return JsonResponse(
+            data,
+            status=200,
+        )
+
+    except Exception as e:
+        print(e)
+        return JsonResponse(
+            {"error": "Authentication check failed", "authenticated": False}, status=201
+        )

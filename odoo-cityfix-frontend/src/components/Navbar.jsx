@@ -37,18 +37,24 @@ const LocationDisplay = memo(() => {
         if (!isMounted) return;
         const { latitude, longitude } = position.coords;
         const API_KEY = "AIzaSyARzdkgMct7QcNkLFVA9i2AwvP4yL_BNNY";
-        
+
         const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${API_KEY}`;
-        
+
         try {
           const response = await fetch(url);
           const data = await response.json();
           if (data.status === "OK" && isMounted) {
             const address = data.results[0]?.address_components;
-            const find = (type) => address?.find(c => c.types.includes(type))?.long_name;
-            const sublocality = find("sublocality_level_1") || find("neighborhood");
+            const find = (type) =>
+              address?.find((c) => c.types.includes(type))?.long_name;
+            const sublocality =
+              find("sublocality_level_1") || find("neighborhood");
             const city = find("locality");
-            setLocation(sublocality && city ? `${sublocality}, ${city}` : city || "Your Location");
+            setLocation(
+              sublocality && city
+                ? `${sublocality}, ${city}`
+                : city || "Your Location"
+            );
             setStatus("success");
           } else {
             throw new Error(`Geocoding failed: ${data.status}`);
@@ -69,17 +75,19 @@ const LocationDisplay = memo(() => {
       }
     );
 
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const locationIcons = {
-    loading: <Loader2 className="w-4 h-4 animate-spin" />,
+    loading: <Loader2 className="w-5 h-5 animate-spin" />,
     success: <MapPin className="w-4 h-4 text-teal-500" />,
     error: <AlertCircle className="w-4 h-4 text-red-500" />,
   };
 
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-600 ml-4 hidden sm:flex">
+    <div className="items-center gap-2 text-xs lg:text-sm text-gray-600 ml-4 hidden sm:flex">
       {locationIcons[status]}
       <span className="truncate max-w-[150px]">{location}</span>
     </div>
@@ -90,10 +98,10 @@ const LocationDisplay = memo(() => {
 export default function ProfessionalHeader() {
   const { triggerAlert } = useAlert();
   const navigate = useNavigate();
-  
+
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  
+
   // Deriving auth state from cookies/localStorage
   const accessToken = getCookie("access_token");
   const [isLoggedIn, setIsLoggedIn] = useState(!!accessToken);
@@ -102,7 +110,7 @@ export default function ProfessionalHeader() {
   const [activeNav, setActiveNav] = useState("Home");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
-  
+
   const dropdownRef = useRef(null);
   const userIconRef = useRef(null);
 
@@ -125,8 +133,10 @@ export default function ProfessionalHeader() {
   // User object derived from state
   const user = {
     email: userdata?.email,
-    name: `${userdata?.first_name || ''} ${userdata?.last_name || ''}`.trim(),
-    initials: `${userdata?.first_name?.[0] || ''}${userdata?.last_name?.[0] || ''}`,
+    name: `${userdata?.first_name || ""} ${userdata?.last_name || ""}`.trim(),
+    initials: `${userdata?.first_name?.[0] || ""}${
+      userdata?.last_name?.[0] || ""
+    }`,
   };
 
   // Auth check effect
@@ -135,7 +145,7 @@ export default function ProfessionalHeader() {
       try {
         const response = await fetch("http://127.0.0.1:8000/check_auth/", {
           method: "POST",
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             access_token: getCookie("access_token"),
             refresh_token: getCookie("refresh_token"),
@@ -161,13 +171,23 @@ export default function ProfessionalHeader() {
     Home: "/",
     Issues: "/track-issues",
   };
+  useEffect(() => {
+    // Sync activeNav with current pathname
+    const pathToNav = {
+      "/": "Home",
+      "/track-issues": "Issues",
+    };
+    setActiveNav(pathToNav[location.pathname] || "Home");
+  }, [location.pathname]);
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        dropdownRef.current && !dropdownRef.current.contains(event.target) &&
-        userIconRef.current && !userIconRef.current.contains(event.target)
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        userIconRef.current &&
+        !userIconRef.current.contains(event.target)
       ) {
         setShowUserDropdown(false);
       }
@@ -187,7 +207,6 @@ export default function ProfessionalHeader() {
     }
     navigate("/");
   };
-
 
   const toggleMobileMenu = () => {
     setShowMobileMenu(!showMobileMenu);
@@ -217,53 +236,85 @@ export default function ProfessionalHeader() {
   };
 
   const [scrolled, setScrolled] = useState(false);
-    useEffect(() => {
-      const handleScroll = () => setScrolled(window.scrollY > 10);
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
-        <motion.header className={`fixed top-8 left-0 right-0 z-50 transition-all duration-300  ${scrolled ? '' : 'bg-transparent'}`}>
-        <div className={`bg-white/90 shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] backdrop-blur-sm max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 rounded-xl `}>
-          <div className="flex justify-between items-center h-16">
-            
+      <motion.header
+        className={`fixed top-4 left-0 right-0 z-50 transition-all duration-300 px-3 ${
+          scrolled ? "" : "bg-transparent"
+        }`}
+      >
+        <div
+          className={`bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] backdrop-blur-sm max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 rounded-xl`}
+        >
+          <div className="flex justify-between items-center h-12 md:h-14 lg:h-16">
             <div className="flex items-center gap-2">
-              <button onClick={() => handleNavigate("Home", "/")} className="flex-shrink-0">
-                <img src="/images/logo.svg" className="h-9" alt="CityFix Logo" />
+              <button
+                onClick={() => handleNavigate("Home", "/")}
+                className="flex-shrink-0 cursor-pointer"
+              >
+                <img
+                  src="/CityFix.svg"
+                  className="h-9 lg:hidden"
+                  alt="CityFix Logo Small"
+                />
+                <img
+                  src="/images/logo.svg"
+                  className="hidden lg:block h-9"
+                  alt="CityFix Logo Large"
+                />
               </button>
               <LocationDisplay />
             </div>
 
             <nav className="hidden lg:flex items-center gap-2">
               {Object.entries(navItems).map(([item, link]) => (
-                <button key={item} onClick={() => handleNavigate(item, link)} className="relative px-4 py-2 text-sm font-medium text-gray-600 hover:text-teal-600 transition-colors duration-300 rounded-lg">
-                  {activeNav === item && <motion.span layoutId="activePill" className="absolute inset-0 bg-teal-50 rounded-lg z-0" transition={{ type: "spring", stiffness: 300, damping: 30 }} />}
+                <button
+                  key={item}
+                  onClick={() => handleNavigate(item, link)}
+                  className={`relative px-4 py-2 text-sm font-medium transition-colors duration-300 rounded-lg cursor-pointer ${
+                    activeNav === item
+                      ? "bg-teal-50 text-teal-600"
+                      : "text-gray-600 hover:text-teal-600"
+                  }`}
+                >
                   <span className="relative z-10">{item}</span>
+                  {activeNav === item && (
+                    <motion.span
+                      layoutId="activePill"
+                      className="absolute inset-0 bg-teal-100/40 rounded-lg z-0"
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                    />
+                  )}
                 </button>
               ))}
             </nav>
 
-            <div className="flex items-center space-x-4 gap-2">
+            <div className="flex items-center space-x-2 lg:space-x-4 gap-2">
               {/* Search Bar  */}
-              <div className="relative shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-full flex items-center gap-1 px-2 py-1.5 group duration-300">
-                <Search className="w-5 h-5 rounded-full" />
+              <div className="relative shadow-[0_3px_3px_rgb(10,10,10,0.2)] border border-gray-300 rounded-full flex items-center gap-1 px-2 py-1 lg:py-1.5 group duration-300">
+                <Search className="w-4 h-4 lg:w-5 lg:h-5 rounded-full" />
                 <input
                   type="text"
                   id="search"
                   value={query}
                   onChange={handleSearch}
-                  className="w-full text-sm text-gray-900 placeholder:text-sm outline-none placeholder:text-gray-400 group-hover:placeholder:text-gray-600 duration-300  min-w-[280px] placeholder:hover:text-medium"
+                  className="text-sm text-gray-900 lg:placeholder:text-sm outline-none placeholder:text-gray-400 group-hover:placeholder:text-gray-600 duration-300  w-[110px] lg:min-w-[280px] placeholder:hover:text-medium placeholder:text-xs"
                   placeholder="Search..."
                 />
 
                 {/* Dropdown results */}
                 {query.length > 3 && results.length > 0 && (
                   <ul className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-md mt-1 z-50 max-h-60 overflow-hidden">
-                    <p className="text-sm px-2 pt-2 pb-1 font-medium text-gray-500 border-b border-gray-200 flex items-center gap-2">
-                      Top Search Results
-                    </p>
                     {results.map((item, index) => {
                       const highlightMatch = (text) => {
                         const parts = text.split(
@@ -322,112 +373,121 @@ export default function ProfessionalHeader() {
                   </div>
                 )}
               </div>
-
               {!isLoggedIn ? (
-                <>
-                  <button
-                    onClick={() => navigate("/login")}
-                    className="px-5 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 duration-500 cursor-pointer rounded-lg  focus:outline-none  transition-colors"
-                  >
-                    Login
-                  </button>
-                </>
+                <button
+                  onClick={() => navigate("/login")}
+                  className="px-4 lg:px-5 py-2 text-xs lg:text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 duration-500 cursor-pointer rounded-lg  focus:outline-none  transition-colors"
+                >
+                  Login
+                </button>
               ) : (
                 <div className="relative">
                   <button
                     ref={userIconRef}
                     onClick={() => setShowUserDropdown(!showUserDropdown)}
-                    className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center text-white font-medium text-sm hover:shadow-lg focus:outline-none  transition-all duration-200"
+                    className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center text-white font-bold text-sm hover:ring-4 hover:ring-teal-500/20 focus:outline-none transition-all"
                   >
-                    {user.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      user.initials
-                    )}
+                    {user.initials || "..."}
                   </button>
-
-                  {/* User Dropdown */}
-                  {showUserDropdown && (
-                    <div
-                      ref={dropdownRef}
-                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-50 transform transition-all duration-250 ease-out animate-in slide-in-from-top-2"
-                    >
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-gray-500">Welcome back!</p>
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          setShowUserDropdown(false);
-                          navigate("/dashboard");
-                          // Navigate to dashboard
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-150"
+                  <AnimatePresence>
+                    {showUserDropdown && (
+                      <motion.div
+                        ref={dropdownRef}
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                        className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_3px_10px_rgb(0,0,0,0.2)] border border-gray-100 overflow-hidden z-50 origin-top-right"
                       >
-                        <Home className="w-4 h-4" />
-                        <span>Dashboard</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setShowUserDropdown(false);
-                          // Navigate to settings
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-150"
-                      >
-                        <Settings className="w-4 h-4" />
-                        <span>Settings</span>
-                      </button>
-
-                      <hr className="my-1 border-gray-100" />
-
-                      <button
-                        onClick={handleLogout}
-                        className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3 transition-colors duration-150"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  )}
+                        <div className="px-4 py-2 border-b border-gray-100">
+                          <p className="font-semibold text-gray-800 truncate text-sm">
+                            {user.name.toUpperCase()}
+                          </p>
+                          <p className="text-xs text-gray-500">Welcome back!</p>
+                        </div>
+                        <div>
+                          <button
+                            onClick={() => {
+                              setShowUserDropdown(false);
+                              navigate("/dashboard");
+                            }}
+                            className="w-full flex items-center gap-3 cursor-pointer px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-teal-600"
+                          >
+                            <Home className="w-4 h-4" /> Dashboard
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowUserDropdown(false);
+                              navigate("/settings");
+                            }}
+                            className="w-full flex items-center gap-3 cursor-pointer px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-teal-600"
+                          >
+                            <Settings className="w-4 h-4" /> Settings
+                          </button>
+                        </div>
+                        <div className="border-t border-gray-100">
+                          <button
+                            onClick={() => handleLogout()}
+                            className="w-full flex items-center gap-3 cursor-pointer px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                          >
+                            <LogOut className="w-4 h-4" /> Logout
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={toggleMobileMenu}
-                className="lg:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none  transition-colors duration-200"
-              >
-                {showMobileMenu ? (
-                  <X className="w-5 h-5" />
-                ) : (
-                  <Menu className="w-5 h-5" />
-                )}
-              </button>
+              <div className="lg:hidden">
+                <button
+                  onClick={() => setShowMobileMenu(true)}
+                  className="p-2 rounded-md text-gray-600"
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
-            </motion.header>
+      </motion.header>
 
       <AnimatePresence>
         {showMobileMenu && (
           <div className="lg:hidden fixed inset-0 z-50">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30" onClick={() => setShowMobileMenu(false)} />
-            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', stiffness: 400, damping: 30 }} className="fixed right-0 top-0 h-full w-72 bg-white shadow-xl">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/30"
+              onClick={() => setShowMobileMenu(false)}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              className="fixed right-0 top-0 h-full w-72 bg-white shadow-xl"
+            >
               <div className="flex items-center justify-between p-4 border-b">
                 <h3 className="font-bold text-lg">Menu</h3>
-                <button onClick={() => setShowMobileMenu(false)} className="p-2 rounded-full hover:bg-gray-100"><X className="w-5 h-5" /></button>
+                <button
+                  onClick={() => setShowMobileMenu(false)}
+                  className="p-2 rounded-full hover:bg-gray-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
               <nav className="p-4">
                 {Object.entries(navItems).map(([item, link]) => (
-                  <button key={item} onClick={() => handleNavigate(item, link)} className={`w-full text-left px-4 py-3 rounded-lg font-medium ${activeNav === item ? 'bg-teal-50 text-teal-600' : 'text-gray-700'}`}>
+                  <button
+                    key={item}
+                    onClick={() => handleNavigate(item, link)}
+                    className={`w-full text-left px-4 py-3 rounded-lg font-medium ${
+                      activeNav === item
+                        ? "bg-teal-50 text-teal-600"
+                        : "text-gray-700"
+                    }`}
+                  >
                     {item}
                   </button>
                 ))}
