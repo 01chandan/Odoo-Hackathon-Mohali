@@ -597,8 +597,6 @@ export default function AdminDashboard() {
                     <tr>
                       <th className="px-6 py-3">Issue Title</th>
                       <th className="px-6 py-3">Status</th>
-                      <th className="px-6 py-3">Priority</th>
-                      <th className="px-6 py-3 text-center">Reports</th>
                       <th className="px-6 py-3">Date</th>
                       <th className="px-6 py-3">
                         <span className="sr-only">Actions</span>
@@ -616,12 +614,6 @@ export default function AdminDashboard() {
                         </th>
                         <td className="px-6 py-4">
                           <StatusBadge status={issue.status} />
-                        </td>
-                        <td className="px-6 py-4">
-                          <PriorityBadge priority={issue.priority} />
-                        </td>
-                        <td className="px-6 py-4 text-center font-medium text-slate-700">
-                          {issue.reports}
                         </td>
                         <td className="px-6 py-4">{issue.createdAt}</td>
                         <td className="px-6 py-4 text-right">
