@@ -105,7 +105,6 @@ const Flag = (props) => (
   </svg>
 );
 
-// --- REUSABLE COMPONENTS ---
 
 const StatusBadge = ({ status }) => {
   const baseClasses = "px-3 py-1 text-sm font-medium rounded-full inline-block";

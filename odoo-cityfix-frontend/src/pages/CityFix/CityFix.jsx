@@ -249,7 +249,7 @@ const IssueCard = ({ issue, index }) => {
               ? "bg-red-500"
               : issue.category === "Obstructions"
               ? "bg-purple-600"
-              : "bg-sky-500" // Fallback for any other category
+              : "bg-sky-500" 
           }`}
         >
           {issue.category}
