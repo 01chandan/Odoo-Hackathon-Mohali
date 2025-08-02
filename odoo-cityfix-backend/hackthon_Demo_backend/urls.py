@@ -13,4 +13,5 @@ urlpatterns = [
     path("reset-password/", views.reset_password, name="reset_password"),
     path("get-issue-details/", views.get_issue_details, name="get_issue_details"),
     path("report-spam/", views.report_spam, name="report_spam"),
+    path("report-new-issue/", views.report_new_issue, name="report_new_issue"),
 ]

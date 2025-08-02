@@ -16,6 +16,7 @@ import {
   Plus,
   Edit2,
 } from "lucide-react";
+import { getCookie, setCookies } from "../utils/cookies";
 
 // --- SUB-COMPONENTS (Moved outside for performance and to fix state issues) ---
 
@@ -483,7 +484,7 @@ export default function ReportIssueModal({ onClose }) {
     }
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!category || !description || images.length === 0 || !location) {
       setErrorMessage("Please complete all fields to submit a report.");
@@ -492,27 +493,58 @@ export default function ReportIssueModal({ onClose }) {
       return;
     }
 
-    console.log("Latitude:", location.lat);
-    console.log("Longitude:", location.lng);
-
     setIsSubmitting(true);
     setErrorMessage("");
-    const formData = new FormData();
-    images.forEach((img) => formData.append("images", img.file));
-    formData.append("location", JSON.stringify(location));
-    formData.append("category", category);
-    formData.append("description", description);
-    console.log("--- Submitting Form Data ---");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    setTimeout(() => {
-      onClose();
-    }, 2500);
+    const formData = {};
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    images.forEach((img) => (formData["images"] = img.url));
+    formData["location"] = location;
+    formData["category"] = category;
+    formData["description"] = description;
+    console.log(user.id);
+    fetch(`http://127.0.0.1:8000/report-new-issue/`, {
+      method: "POST",
+      body: JSON.stringify({
+        formData: formData,
+        user: user.id,
+        access_token: getCookie("access_token"),
+        refresh_token: getCookie("refresh_token"),
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to login");
+        return response.json();
+      })
+      .then((response) => {
+        if (response.error) {
+          triggerAlert(response.error);
+          setTimeout(() => {
+            triggerAlert("");
+          }, 3000);
+        } else {
+          triggerAlert(response.message);
+          setTimeout(() => {
+            triggerAlert("");
+          }, 3000);
+          setIsSubmitting(false);
+          setShowSuccess(true);
+          setTimeout(() => {
+            onClose();
+          }, 2500);
+          if (response.access) {
+            setCookies(response);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error: ", error);
+      })
+      .finally(() => {});
   };
+
   useEffect(() => {
     let isMounted = true;
     if (!navigator.geolocation) {
