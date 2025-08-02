@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
+import IssuePopup from "../../components/ReportNewIssue";
 
 function getStatusColor(status) {
   switch (status) {
@@ -123,7 +125,13 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
   );
 };
 
-const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
+const Header = ({
+  filters,
+  setFilters,
+  searchQuery,
+  setSearchQuery,
+  setIsOpenIssuePopup,
+}) => {
   const handleFilterChange = (filterName) => (value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
   };
@@ -190,6 +198,7 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
 };
 
 const IssueCard = ({ issue, index }) => {
+  const navigate = useNavigate();
   const cardVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -208,6 +217,10 @@ const IssueCard = ({ issue, index }) => {
       className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col cursor-pointer"
       variants={cardVariants}
       layout
+      onClick={() => {
+        console.log(1);
+        navigate("/report-details", { state: issue });
+      }}
     >
       <div className="relative">
         <img
@@ -411,6 +424,8 @@ export default function App() {
 
     return true;
   });
+
+  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     setCurrentPage(1);
