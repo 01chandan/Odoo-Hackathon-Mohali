@@ -32,15 +32,13 @@ function formatDate(dateString) {
 }
 
 const categoryImageMap = {
-  "Roads": "/images/Roads.png",
-  "Lighting": "/images/lighting.png",
+  Roads: "/images/Roads.png",
+  Lighting: "/images/Lighting.png",
   "Water Supply": "/images/water.png",
-  "Cleanliness": "/images/cleanliness.png",
+  Cleanliness: "/images/cleanliness.png",
   "Public Safety": "/images/water.png",
-  "Obstructions": "/images/lighting.png",
+  Obstructions: "/images/lighting.png",
 };
-
-
 
 function calculateSince(dateString) {
   const now = new Date();
@@ -146,6 +144,7 @@ const Header = ({
   searchQuery,
   setSearchQuery,
   setIsOpenIssuePopup,
+  setMyIssues,
 }) => {
   const handleFilterChange = (filterName) => (value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
@@ -197,7 +196,10 @@ const Header = ({
           />
         </div>
         <div className="flex items-center gap-2 md:gap-4">
-          <button className="w-full px-5 py-2 text-sm font-medium text-[#000000] shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-lg hover:bg-gray-200 transition-colors duration-500 cursor-pointer">
+          <button
+            onClick={() => setMyIssues(true)}
+            className="w-full px-5 py-2 text-sm font-medium text-[#000000] shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-lg hover:bg-gray-200 transition-colors duration-500 cursor-pointer"
+          >
             My Issue
           </button>
           <button
@@ -239,7 +241,7 @@ const IssueCard = ({ issue, index }) => {
       <div className="relative">
         <img
           className="w-full h-40 object-cover"
-    src={categoryImageMap[issue.category]} 
+          src={categoryImageMap[issue.category]}
           alt={issue.title}
           onError={(e) => {
             e.target.onerror = null;
@@ -349,6 +351,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
 export default function App() {
   const [isOpenIssuePopup, setIsOpenIssuePopup] = useState(false);
+  const [myIssues, setMyIssues] = useState(false);
 
   const [filters, setFilters] = useState({
     category: "All",
@@ -359,7 +362,8 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [location, setLocation] = useState(null);
   const [issuesData, setIssuesData] = useState([]);
-
+  const userData = JSON.parse(localStorage.getItem("user_data")) || {};
+  const userEmail = userData.email || "";
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -375,51 +379,47 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const loadIssues = async () => {
-      const rawIssues = JSON.parse(localStorage.getItem("issues_data")) || [];
-      const resolved = await Promise.all(
-        rawIssues.map(async (issue) => {
-          const lat = issue.latitude;
-          const lon = issue.longitude;
-          const address = await reverseGeocode(lat, lon);
-          const status = issue?.status || "Reported";
+    // Load issues instantly from localStorage
+    const rawIssues = JSON.parse(localStorage.getItem("issues_data")) || [];
+    const resolved = rawIssues.map((issue) => {
+      const lat = issue.latitude;
+      const lon = issue.longitude;
+      const status = issue?.status || "Reported";
+      let distance = 0;
+      if (location) {
+        distance = calculateDistance(
+          location.latitude,
+          location.longitude,
+          lat,
+          lon
+        );
+      }
+      return {
+        id: issue.id,
+        email: issue.users_table?.email || "Unknown",
+        category: issue.categories?.name || "Unknown",
+        title: issue.title,
+        status,
+        statusColor: getStatusColor(status),
+        date: formatDate(issue.created_at),
+        since: calculateSince(issue.created_at),
+        distance,
+        location: { latitude: lat, longitude: lon },
+        address: issue.address || "Address not available", // Use address from API or fallback
+        imageUrl:
+          issue.issue_photos?.[0]?.image_url ||
+          "https://placehold.co/600x400?text=No+Image",
+      };
+    });
+    setIssuesData(resolved);
+  }, []); // Only run once on mount
 
-          let distance = 0;
-          if (location) {
-            distance = calculateDistance(
-              location.latitude,
-              location.longitude,
-              lat,
-              lon
-            );
-          }
-
-          return {
-            id: issue.id,
-            category: issue.categories?.name || "Unknown",
-            title: issue.title,
-            status,
-            statusColor: getStatusColor(status),
-            date: formatDate(issue.created_at),
-            since: calculateSince(issue.created_at),
-            distance,
-            location: { latitude: lat, longitude: lon },
-            address,
-            imageUrl:
-              issue.issue_photos?.[0]?.image_url ||
-              "https://placehold.co/600x400?text=No+Image",
-          };
-        })
-      );
-      setIssuesData(resolved);
-    };
-
-    if (location) {
-      loadIssues();
-    }
-  }, [location]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, searchQuery, myIssues]);
 
   const filteredIssues = issuesData?.filter((issue) => {
+    if (myIssues && issue.email !== userEmail) return false;
     if (filters.category !== "All" && issue.category !== filters.category)
       return false;
     if (filters.status !== "All" && issue.status !== filters.status)
@@ -433,6 +433,13 @@ export default function App() {
     )
       return false;
     if (filters.distance === "> 3 Km" && distanceValue <= 3) return false;
+
+    if (
+      searchQuery &&
+      !issue.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !issue.address.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+      return false;
 
     if (
       searchQuery &&
@@ -468,6 +475,7 @@ export default function App() {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             setIsOpenIssuePopup={setIsOpenIssuePopup}
+            setMyIssues={setMyIssues}
           />
           <main>
             <AnimatePresence>
@@ -488,29 +496,29 @@ export default function App() {
                         <div className="animate-pulse">
                           {/* Header: Category Tag and Date */}
                           <div className="flex justify-between items-center mb-4">
-                            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
-                            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
+                            <div className="h-6 w-24 bg-gray-300 rounded-lg"></div>
+                            <div className="h-6 w-20 bg-gray-300 rounded-lg"></div>
                           </div>
 
                           {/* Main Title */}
-                          <div className="w-3/4 h-10 bg-gray-300 dark:bg-gray-700 rounded-lg mb-6"></div>
+                          <div className="w-3/4 h-10 bg-gray-300 rounded-lg mb-6"></div>
 
                           {/* Divider */}
                           <div className="border-t border-gray-200 dark:border-gray-700 mb-4"></div>
 
                           {/* Status Line */}
                           <div className="flex items-center mb-3">
-                            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-                            <div className="h-5 w-2/5 bg-gray-300 dark:bg-gray-700 rounded-lg ml-3"></div>
+                            <div className="h-5 w-5 rounded-full bg-gray-300"></div>
+                            <div className="h-5 w-2/5 bg-gray-300 rounded-lg ml-3"></div>
                           </div>
 
                           {/* Timestamp */}
-                          <div className="h-4 w-1/3 bg-gray-300 dark:bg-gray-700 rounded-lg mb-5"></div>
+                          <div className="h-4 w-1/3 bg-gray-300 rounded-lg mb-5"></div>
 
                           {/* Location Info */}
                           <div className="flex items-center">
-                            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-                            <div className="h-5 w-4/5 bg-gray-300 dark:bg-gray-700 rounded-lg ml-3"></div>
+                            <div className="h-5 w-5 rounded-full bg-gray-300"></div>
+                            <div className="h-5 w-4/5 bg-gray-300 rounded-lg ml-3"></div>
                           </div>
                         </div>
                       </div>
