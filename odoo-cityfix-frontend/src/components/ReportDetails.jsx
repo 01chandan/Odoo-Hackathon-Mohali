@@ -323,21 +323,21 @@ function ReportDetailsPage() {
               <span className="font-medium">Back to Issues</span>
             </button>
             <div className="text-sm text-gray-500 font-mono">
-              ID: {reportData.id}
+              ID: {reportData?.id}
             </div>
           </header>
 
           <main className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="relative h-64 md:h-80 w-full">
               <img
-                src={reportData.imageUrl}
-                alt={reportData.title}
+                src={reportData?.imageUrl}
+                alt={reportData?.title}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
               <div className="absolute bottom-0 left-0 p-6 md:p-8">
                 <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
-                  {reportData.title}
+                  {reportData?.title}
                 </h1>
               </div>
             </div>
@@ -347,13 +347,13 @@ function ReportDetailsPage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-sm text-gray-500">
                     <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-md">
-                      {reportData.category}
+                      {reportData?.category}
                     </span>
                     <span>|</span>
-                    <span>{reportData.timestamp}</span>
+                    <span>{reportData?.timestamp}</span>
                   </div>
                   <p className="text-gray-700 leading-relaxed">
-                    {reportData.description}
+                    {reportData?.description}
                   </p>
                 </div>
 
@@ -362,11 +362,11 @@ function ReportDetailsPage() {
                     Activity
                   </h2>
                   <div className="space-y-6">
-                    {reportData.activity.map((item, index) => (
+                    {reportData?.activity?.map((item, index) => (
                       <ActivityItem
                         key={index}
                         item={item}
-                        isLast={index === reportData.activity.length - 1}
+                        isLast={index === reportData?.activity.length - 1}
                       />
                     ))}
                   </div>
@@ -377,14 +377,14 @@ function ReportDetailsPage() {
                 <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                   <h3 className="font-bold text-gray-800 mb-3">Status</h3>
                   <div className="flex items-center justify-between mb-4">
-                    <StatusBadge status={reportData.status} />
+                    <StatusBadge status={reportData?.status} />
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <User className="w-5 h-5 text-gray-400" />
                     <span>
                       Reported by:{" "}
                       <span className="font-semibold">
-                        {reportData.reportedBy}
+                        {reportData?.reportedBy}
                       </span>
                     </span>
                   </div>
@@ -395,14 +395,14 @@ function ReportDetailsPage() {
                   <div className="flex items-start gap-3 text-sm text-gray-600 mb-4">
                     <MapPin className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
                     <span className="font-semibold">
-                      {reportData.location.address}
+                      {reportData?.location?.address}
                     </span>
                   </div>
                   {/* --- GOOGLE MAP INTEGRATION --- */}
                   <div className="h-48 rounded-md overflow-hidden border border-gray-200">
                     <MapComponent
-                      lat={reportData.location.lat}
-                      lng={reportData.location.lng}
+                      lat={reportData?.location?.lat}
+                      lng={reportData?.location?.lng}
                     />
                   </div>
                 </div>
