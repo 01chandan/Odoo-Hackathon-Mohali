@@ -115,7 +115,7 @@ const BeforeAfterSlider = ({ beforeImg, afterImg }) => {
     };
 
     return (
-        <div ref={containerRef} className="relative w-full max-w-4xl mx-auto aspect-[16/10] rounded-2xl overflow-hidden select-none cursor-ew-resize shadow-2xl shadow-teal-900/20">
+        <div ref={containerRef} className="relative w-full max-w-2xl mx-auto aspect-[16/12] rounded-2xl overflow-hidden select-none cursor-ew-resize shadow-2xl shadow-teal-900/20">
             <motion.div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${afterImg})` }} />
             <motion.div 
                 className="absolute inset-0 w-full h-full bg-cover bg-center" 
@@ -278,7 +278,7 @@ const BeforeAfterSection = () => {
     const isInView = useInView(ref, { once: true, amount: 0.3 });
     return (
         <section ref={ref} className="py-20 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl aspect-square mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div initial={{ opacity: 0, y: 30 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.8 }} className="text-center mb-12">
                     <h2 className="text-4xl font-extrabold text-gray-900">From Report to Reality</h2>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
