@@ -106,28 +106,32 @@ const LocationSelector = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodingError, setGeocodingError] = useState("");
+  const [tempAddress, setTempAddress] = useState(location?.address || "");
+
+  const API_KEY = "AIzaSyARzdkgMct7QcNkLFVA9i2AwvP4yL_BNNY";
 
   const handleAddressChange = (e) => {
-    onLocationUpdate({ ...location, address: e.target.value });
+    setTempAddress(e.target.value);
   };
 
   const handleEditToggle = async () => {
     if (isEditing) {
-      // User is finishing editing, so geocode the new address
+      // User is finishing editing -> geocode address
       setIsGeocoding(true);
       setGeocodingError("");
-      const API_KEY = "AIzaSyARzdkgMct7QcNkLFVA9i2AwvP4yL_BNNY";
+
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-        location.address
+        tempAddress
       )}&key=${API_KEY}`;
+
       try {
         const response = await fetch(url);
         const data = await response.json();
         if (data.status === "OK") {
           const { lat, lng } = data.results[0].geometry.location;
-          onLocationUpdate({ ...location, lat, lng });
+          onLocationUpdate({ lat, lng, address: tempAddress });
         } else {
-          throw new Error("Could not find address.");
+          throw new Error("Invalid address");
         }
       } catch (err) {
         setGeocodingError("Invalid address. Please try again.");
@@ -137,12 +141,37 @@ const LocationSelector = ({
     setIsEditing(!isEditing);
   };
 
+  // --- Handle pin-drop from map ---
+  const handleMapClick = async (lat, lng) => {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${API_KEY}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.status === "OK") {
+        const newAddress =
+          data.results[0]?.formatted_address || "Unknown location";
+        setTempAddress(newAddress);
+        onLocationUpdate({ lat, lng, address: newAddress });
+      } else {
+        setTempAddress("Unknown location");
+        onLocationUpdate({ lat, lng, address: "Unknown location" });
+      }
+    } catch (err) {
+      setTempAddress("Error fetching address");
+      onLocationUpdate({ lat, lng, address: "Error fetching address" });
+    }
+  };
+
   return (
     <div className="p-4 bg-gray-50 rounded-xl space-y-3">
       {status === "success" && location ? (
         <div className="space-y-3">
           <div className="h-40 rounded-lg overflow-hidden border border-gray-200 relative">
-            <MapPreview lat={location.lat} lng={location.lng} />
+            <MapPreview
+              lat={location.lat}
+              lng={location.lng}
+              onLocationPick={handleMapClick}
+            />
             {isGeocoding && (
               <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
@@ -163,7 +192,7 @@ const LocationSelector = ({
               </button>
             </div>
             <textarea
-              value={location.address}
+              value={tempAddress}
               onChange={handleAddressChange}
               readOnly={!isEditing}
               className={`w-full text-sm p-2 rounded-md border transition-all resize-none ${
@@ -259,8 +288,9 @@ const CategorySelector = ({ category, categories, onCategoryChange }) => {
   );
 };
 
-const MapPreview = ({ lat, lng }) => {
+const MapPreview = ({ lat, lng, onLocationPick }) => {
   const mapRef = useRef(null);
+  const markerRef = useRef(null);
   const [isScriptLoaded, setScriptLoaded] = useState(false);
 
   useEffect(() => {
@@ -291,9 +321,34 @@ const MapPreview = ({ lat, lng }) => {
         disableDefaultUI: true,
         styles: [{ stylers: [{ saturation: -100 }, { lightness: 20 }] }],
       });
-      new window.google.maps.Marker({ position: { lat, lng }, map: map });
+
+      const marker = new window.google.maps.Marker({
+        position: { lat, lng },
+        map,
+        draggable: true,
+      });
+
+      markerRef.current = marker;
+
+      // Allow pin-drop by clicking the map
+      map.addListener("click", (e) => {
+        const clickedLat = e.latLng.lat();
+        const clickedLng = e.latLng.lng();
+        marker.setPosition({ lat: clickedLat, lng: clickedLng });
+        if (onLocationPick) {
+          onLocationPick(clickedLat, clickedLng);
+        }
+      });
+
+      // Allow dragging marker to update coordinates
+      marker.addListener("dragend", () => {
+        const pos = marker.getPosition();
+        if (onLocationPick) {
+          onLocationPick(pos.lat(), pos.lng());
+        }
+      });
     }
-  }, [isScriptLoaded, lat, lng]);
+  }, [isScriptLoaded, lat, lng, onLocationPick]);
 
   return <div ref={mapRef} style={{ width: "100%", height: "100%" }} />;
 };
@@ -458,6 +513,63 @@ export default function ReportIssueModal({ onClose }) {
       onClose();
     }, 2500);
   };
+  useEffect(() => {
+    let isMounted = true;
+    if (!navigator.geolocation) {
+      if (isMounted) {
+        setStatus("error");
+        setLocation("Geolocation not supported.");
+      }
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        if (!isMounted) return;
+        const { latitude, longitude } = position.coords;
+        const API_KEY = "AIzaSyARzdkgMct7QcNkLFVA9i2AwvP4yL_BNNY";
+
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${API_KEY}`;
+
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+          if (data.status === "OK" && isMounted) {
+            const address = data.results[0]?.address_components;
+            const find = (type) =>
+              address?.find((c) => c.types.includes(type))?.long_name;
+            const sublocality =
+              find("sublocality_level_1") || find("neighborhood");
+            const city = find("locality");
+            setLocation(
+              sublocality && city
+                ? `${sublocality}, ${city}`
+                : city || "Your Location"
+            );
+            setStatus("success");
+          } else {
+            throw new Error(`Geocoding failed: ${data.status}`);
+          }
+        } catch (error) {
+          if (isMounted) {
+            console.error("Error fetching location name:", error);
+            setStatus("error");
+            setLocation("Could not fetch location.");
+          }
+        }
+      },
+      () => {
+        if (isMounted) {
+          setStatus("error");
+          setLocation("Location access denied.");
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-sans">
