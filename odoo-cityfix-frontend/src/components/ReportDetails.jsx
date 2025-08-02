@@ -124,7 +124,7 @@ const ActivityItem = ({ item, isLast }) => (
   </div>
 );
 
-// --- NEW MAP COMPONENT (No external library needed) ---
+//
 const MapComponent = ({ lat, lng }) => {
   const mapRef = React.useRef(null);
   const [isScriptLoaded, setScriptLoaded] = React.useState(false);
@@ -362,7 +362,7 @@ function ReportDetailsPage() {
                     Activity
                   </h2>
                   <div className="space-y-6">
-                    {reportData.activity?.map((item, index) => (
+                    {reportData.activity.map((item, index) => (
                       <ActivityItem
                         key={index}
                         item={item}
@@ -395,14 +395,14 @@ function ReportDetailsPage() {
                   <div className="flex items-start gap-3 text-sm text-gray-600 mb-4">
                     <MapPin className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
                     <span className="font-semibold">
-                      {reportData?.location?.address}
+                      {reportData.location.address}
                     </span>
                   </div>
                   {/* --- GOOGLE MAP INTEGRATION --- */}
                   <div className="h-48 rounded-md overflow-hidden border border-gray-200">
                     <MapComponent
-                      lat={reportData?.location?.lat}
-                      lng={reportData?.location?.lng}
+                      lat={reportData.location.lat}
+                      lng={reportData.location.lng}
                     />
                   </div>
                 </div>

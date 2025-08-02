@@ -169,7 +169,10 @@ const AuthPage = () => {
               triggerAlert("");
             }, 3000);
             localStorage.setItem("user_data", JSON.stringify(response.user));
-            localStorage.setItem("issues_data", JSON.stringify(response.issues));
+            localStorage.setItem(
+              "issues_data",
+              JSON.stringify(response.issues)
+            );
             if (response.access) {
               setCookies(response);
             }
@@ -177,7 +180,7 @@ const AuthPage = () => {
               email: "",
               password: "",
             });
-            navigate("/dashboard");
+            navigate("/track-issues");
           }
           setIsLoading(false);
         })
@@ -376,6 +379,7 @@ const AuthPage = () => {
             {activeTab === "Login" ? (
               <div className="flex items-center justify-end">
                 <button
+                  type="button"
                   onClick={() => navigate("/forgot-password")}
                   className="text-[13px] text-teal-600 hover:underline block cursor-pointer"
                 >
@@ -473,7 +477,7 @@ const AuthPage = () => {
                     : "Creating account..."}
                 </div>
               ) : activeTab === "Login" ? (
-                "Sign In"
+                "Login"
               ) : (
                 "Create Account"
               )}
@@ -489,7 +493,7 @@ const AuthPage = () => {
             {/* Google OAuth Button */}
             <button
               type="button"
-              onClick={handleGoogleAuth}
+              // onClick={handleGoogleAuth}
               className="w-full flex items-center justify-center gap-3 py-2 cursor-pointer px-4 shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] text-sm font-medium border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:shadow-md"
             >
               <svg className="w-4.5 h-4.5" viewBox="0 0 24 24">
