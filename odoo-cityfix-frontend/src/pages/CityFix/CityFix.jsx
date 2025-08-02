@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
@@ -9,8 +10,7 @@ import {
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
-
-const ITEMS_PER_PAGE = 6;
+import IssuePopup from "../../components/ReportNewIssue";
 
 function getStatusColor(status) {
   switch (status) {
@@ -34,34 +34,47 @@ function formatDate(dateString) {
 function calculateSince(dateString) {
   const now = new Date();
   const then = new Date(dateString);
-  const daysDiff = Math.floor((now - then) / (1000 * 60 * 60 * 24));
-  return `since last ${daysDiff} day${daysDiff !== 1 ? "s" : ""}`;
+  const diffMs = now - then;
+
+  const minutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const months = Math.floor(days / 30);
+
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+  if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  if (days < 30) return `${days} day${days !== 1 ? "s" : ""} ago`;
+  return `${months} month${months !== 1 ? "s" : ""} ago`;
 }
 
-const issuesData = rawIssues?.map((issue) => {
-  const latestStatusLog =
-    issue.issue_status_logs?.[issue.issue_status_logs.length - 1];
-  const status = latestStatusLog?.status || issue.status;
+async function reverseGeocode(lat, lon) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=en`
+    );
+    const data = await res.json();
+    return data.display_name || "Address not found";
+  } catch (error) {
+    console.error("Reverse geocoding error:", error);
+    return "Address not available";
+  }
+}
 
-  return {
-    id: issue.id,
-    category: issue.categories?.name || "Unknown",
-    title: issue.title,
-    status: status,
-    statusColor: getStatusColor(status),
-    date: formatDate(issue.created_at),
-    since: calculateSince(issue.created_at),
-    distance: 0, // 🔧 You can calculate this based on user location and issue.latitude/longitude
-    location: `lat: ${issue.latitude}, lon: ${issue.longitude}`, // or reverse geocode to address
-    imageUrl:
-      issue.issue_photos?.[0]?.image_url ||
-      "https://placehold.co/600x400?text=No+Image",
-  };
-});
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const toRad = (value) => (value * Math.PI) / 180;
 
-console.log(issuesData);
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
 
-// Normal Components
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return +(R * c).toFixed(2); // Distance in km with 2 decimal places
+}
 
 const Dropdown = ({ label, options, selected, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -112,7 +125,13 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
   );
 };
 
-const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
+const Header = ({
+  filters,
+  setFilters,
+  searchQuery,
+  setSearchQuery,
+  setIsOpenIssuePopup,
+}) => {
   const handleFilterChange = (filterName) => (value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
   };
@@ -135,9 +154,6 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
               "Public Safety",
               "Obstructions",
               "Water Supply",
-              "Cleanliness",
-              "Public Safety",
-              "Obstructions",
             ]}
             selected={filters.category}
             onSelect={handleFilterChange("category")}
@@ -182,6 +198,7 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
 };
 
 const IssueCard = ({ issue, index }) => {
+  const navigate = useNavigate();
   const cardVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -200,6 +217,10 @@ const IssueCard = ({ issue, index }) => {
       className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col cursor-pointer"
       variants={cardVariants}
       layout
+      onClick={() => {
+        console.log(1);
+        navigate("/report-details", { state: issue });
+      }}
     >
       <div className="relative">
         <img
@@ -404,6 +425,8 @@ export default function App() {
     return true;
   });
 
+  const ITEMS_PER_PAGE = 6;
+
   useEffect(() => {
     setCurrentPage(1);
   }, [filters, searchQuery]);
@@ -413,6 +436,42 @@ export default function App() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+  const IssueCardSkeleton = () => {
+    return (
+      <div className="border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-5 w-full mx-auto">
+        <div className="animate-pulse">
+          {/* Header: Category Tag and Date */}
+          <div className="flex justify-between items-center mb-4">
+            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-md"></div>
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md"></div>
+          </div>
+
+          {/* Main Title */}
+          <div className="w-3/4 h-10 bg-gray-300 dark:bg-gray-700 rounded-md mb-6"></div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 dark:border-gray-700 mb-4"></div>
+
+          {/* Status Line */}
+          <div className="flex items-center mb-3">
+            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+            <div className="h-5 w-2/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-3"></div>
+            <div className="flex-grow"></div>
+            <div className="h-5 w-3/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-4"></div>
+          </div>
+
+          {/* Timestamp */}
+          <div className="h-4 w-1/3 bg-gray-300 dark:bg-gray-700 rounded-md mb-5"></div>
+
+          {/* Location Info */}
+          <div className="flex items-center">
+            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+            <div className="h-5 w-4/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-3"></div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className=" bg-white">
@@ -433,20 +492,48 @@ export default function App() {
                 initial="hidden"
                 animate="visible"
               >
-                {paginatedIssues.length > 0 ? (
-                  paginatedIssues.map((issue, index) => (
-                    <IssueCard key={issue.id} issue={issue} index={index} />
-                  ))
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="col-span-full text-center py-16 text-gray-500"
-                  >
-                    <h3 className="text-xl font-semibold">No issues found</h3>
-                    <p>Try adjusting your search or filter criteria.</p>
-                  </motion.div>
-                )}
+                {paginatedIssues.length > 0
+                  ? paginatedIssues.map((issue, index) => (
+                      <IssueCard key={issue.id} issue={issue} index={index} />
+                    ))
+                  : // Corrected Skeleton Loader:
+                    // Generate skeleton cards directly within the grid.
+                    // We map an array to create 3 placeholders.
+                    [...Array(3)].map((_, index) => (
+                      <div
+                        key={index}
+                        className="border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-5 w-full mx-auto"
+                      >
+                        <div className="animate-pulse">
+                          {/* Header: Category Tag and Date */}
+                          <div className="flex justify-between items-center mb-4">
+                            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-md"></div>
+                            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md"></div>
+                          </div>
+
+                          {/* Main Title */}
+                          <div className="w-3/4 h-10 bg-gray-300 dark:bg-gray-700 rounded-md mb-6"></div>
+
+                          {/* Divider */}
+                          <div className="border-t border-gray-200 dark:border-gray-700 mb-4"></div>
+
+                          {/* Status Line */}
+                          <div className="flex items-center mb-3">
+                            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+                            <div className="h-5 w-2/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-3"></div>
+                          </div>
+
+                          {/* Timestamp */}
+                          <div className="h-4 w-1/3 bg-gray-300 dark:bg-gray-700 rounded-md mb-5"></div>
+
+                          {/* Location Info */}
+                          <div className="flex items-center">
+                            <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+                            <div className="h-5 w-4/5 bg-gray-300 dark:bg-gray-700 rounded-md ml-3"></div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
               </motion.div>
             </AnimatePresence>
           </main>

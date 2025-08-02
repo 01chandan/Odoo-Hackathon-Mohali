@@ -189,25 +189,25 @@ export default function SimpleAlertSystem() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={alertSystem.submitSuccess}
-                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors duration-200"
+                className="px-3 py-1.5 bg-green-600 text-white text-[13.5px] font-medium rounded-md hover:bg-green-700 transition-colors duration-200"
               >
                 Submit Success
               </button>
               <button
                 onClick={alertSystem.registrationSuccess}
-                className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors duration-200"
+                className="px-3 py-1.5 bg-purple-600 text-white text-[13.5px]  font-medium rounded-md hover:bg-purple-700 transition-colors duration-200"
               >
                 Registration Success
               </button>
               <button
                 onClick={alertSystem.emailVerify}
-                className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors duration-200"
+                className="px-3 py-1.5 bg-purple-600 text-white text-[13.5px]  font-medium rounded-md hover:bg-purple-700 transition-colors duration-200"
               >
                 Email Verification
               </button>
               <button
                 onClick={alertSystem.loginSuccess}
-                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors duration-200"
+                className="px-3 py-1.5 bg-green-600 text-white text-s[13.5px] font-medium rounded-md hover:bg-green-700 transition-colors duration-200"
               >
                 Login Success
               </button>
@@ -218,7 +218,7 @@ export default function SimpleAlertSystem() {
                 onClick={() =>
                   alertSystem.error("Error!", "Something went wrong.")
                 }
-                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors duration-200"
+                className="px-3 py-1.5 bg-red-600 text-white text-sm [13.5px] nt-medium rounded-md hover:bg-red-700 transition-colors duration-200"
               >
                 Custom Error
               </button>
@@ -229,7 +229,7 @@ export default function SimpleAlertSystem() {
                     "Please complete your profile."
                   )
                 }
-                className="px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-md hover:bg-yellow-700 transition-colors duration-200"
+                className="px-3 py-1.5 bg-yellow-600 text-white text-[13.5px]  font-medium rounded-md hover:bg-yellow-700 transition-colors duration-200"
               >
                 Custom Warning
               </button>

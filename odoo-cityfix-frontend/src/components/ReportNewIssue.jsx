@@ -145,16 +145,16 @@ export default function App() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="p-4  bg-teal-50/50 rounded-xl border-2 border-dashed border-teal-200"
+      className="p-1 bg-teal-50/50 rounded-xl border-2 border-dashed border-teal-200"
     >
       <div className="flex flex-col sm:flex-row gap-4">
         <button
           type="button"
           onClick={() => fileInputRef.current.click()}
-          className="flex-1 flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 text-teal-600 hover:bg-teal-50"
+          className="flex-1 flex flex-col items-center justify-center p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 text-teal-600 hover:bg-teal-50"
         >
-          <Image className="w-8 h-8 mb-2" />
-          <span className="font-semibold">Upload from Gallery</span>
+          <Image className="w-6 h-6 mb-2" />
+          <span className="font-semibold text-sm">Upload from Gallery</span>
         </button>
         <input
           type="file"
@@ -162,22 +162,6 @@ export default function App() {
           accept="image/*"
           onChange={handleImageChange}
           ref={fileInputRef}
-          className="hidden"
-        />
-        <button
-          type="button"
-          onClick={() => cameraInputRef.current.click()}
-          className="flex-1 flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 text-teal-600 hover:bg-teal-50"
-        >
-          <Camera className="w-8 h-8 mb-2" />
-          <span className="font-semibold">Take a Picture</span>
-        </button>
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handleImageChange}
-          ref={cameraInputRef}
           className="hidden"
         />
       </div>
@@ -225,13 +209,13 @@ export default function App() {
       className="p-4 bg-teal-50/50 rounded-xl"
     >
       <div
-        className={`w-full h-48 rounded-lg overflow-hidden flex items-center justify-center ${
+        className={`w-full p-4 rounded-lg overflow-hidden flex items-center justify-center ${
           location ? "bg-teal-200" : "bg-gray-200"
         }`}
       >
         {location ? (
-          <div className="text-center text-teal-800 p-4">
-            <MapPin className="w-12 h-12 mx-auto text-teal-600" />
+          <div className="text-center text-teal-800 p-2">
+            <MapPin className="mx-auto text-teal-600" />
             <p className="font-bold mt-2">Location Acquired!</p>
             <p className="text-xs">
               Lat: {location.lat.toFixed(4)}, Lng: {location.lng.toFixed(4)}
@@ -239,22 +223,11 @@ export default function App() {
           </div>
         ) : (
           <div className="text-center text-gray-500">
-            <MapPin className="w-12 h-12 mx-auto" />
+            <MapPin className="w-8 h-8 mx-auto" />
             <p>Map will be shown here</p>
           </div>
         )}
       </div>
-      <button
-        type="button"
-        onClick={handleLocation}
-        className="w-full mt-4 flex items-center justify-center gap-2 bg-teal-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-600 transition-colors duration-300 shadow-sm"
-      >
-        <MapPin className="w-5 h-5" />
-        Get Current Location
-      </button>
-      {locationError && (
-        <p className="text-red-500 text-sm mt-2 text-center">{locationError}</p>
-      )}
     </motion.div>
   );
 
@@ -272,7 +245,7 @@ export default function App() {
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between text-left p-4 bg-white rounded-xl shadow-sm border border-gray-200"
+          className="w-full flex items-center justify-between text-left p-2 text-sm bg-white rounded-xl shadow-sm border border-gray-200"
         >
           <span className="flex items-center">
             {selectedCategoryData ? (
@@ -330,7 +303,7 @@ export default function App() {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Describe the issue in detail..."
-        className="w-full p-4 bg-white rounded-xl shadow-sm border border-gray-200 h-32 resize-none focus:ring-2 focus:ring-teal-400 focus:outline-none transition"
+        className="w-full p-2 text-sm bg-white rounded-xl shadow-sm border border-gray-200 h-20 resize-none focus:ring-2 focus:ring-teal-400 focus:outline-none transition"
       />
     </motion.div>
   );
@@ -345,29 +318,29 @@ export default function App() {
           transition={{ duration: 0.5 }}
           className="bg-white rounded-3xl shadow-2xl shadow-teal-500/10 p-6"
         >
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-teal-900">
+          <div className="text-center mb-3">
+            <h1 className="text-[15px] font-bold text-teal-900">
               Report New Issue
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-gray-500 mt-0.5 text-[13px]">
               Help us improve your community.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <Section title="1. Add Photos">
+            <Section title="Add Photos">
               <ImageUploader />
             </Section>
 
-            <Section title="2. Set Location">
+            <Section title="Your Location">
               <LocationSelector />
             </Section>
 
-            <Section title="3. Choose Category">
+            <Section title="Choose Category">
               <CategorySelector />
             </Section>
 
-            <Section title="4. Provide Description">
+            <Section title="Provide Description">
               <DescriptionInput />
             </Section>
 
@@ -376,7 +349,7 @@ export default function App() {
               disabled={isSubmitting}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full bg-teal-500 text-white font-bold py-4 px-4 rounded-xl hover:bg-teal-600 transition-all duration-300 shadow-lg shadow-teal-500/30 disabled:bg-gray-400 disabled:shadow-none"
+              className="w-full bg-teal-500 text-white font-bold p-2 text-sm font-medium rounded-xl hover:bg-teal-600 transition-all duration-300 shadow-lg shadow-teal-500/30 disabled:bg-gray-400 disabled:shadow-none"
             >
               {isSubmitting ? "Submitting..." : "Submit Issue"}
             </motion.button>
@@ -400,7 +373,7 @@ export default function App() {
 
 const Section = ({ title, children }) => (
   <div>
-    <h2 className="text-xl font-semibold text-teal-800 mb-3">{title}</h2>
+    <h2 className="text-sm font-semibold text-teal-800 mb-2">{title}</h2>
     {children}
   </div>
 );
