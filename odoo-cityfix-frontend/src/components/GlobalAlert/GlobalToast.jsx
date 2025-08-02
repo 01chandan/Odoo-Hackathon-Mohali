@@ -64,7 +64,7 @@ const GlobalToast = () => {
 
   return (
     <div
-      className={`${bg} fixed top-4 right-4 z-50 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in-right`}
+      className={`${bg} fixed top-32 right-4 z-[9999999] text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in-right`}
     >
       <Icon className="w-4.5 h-4.5" />
       <span>{showMessage}</span>
