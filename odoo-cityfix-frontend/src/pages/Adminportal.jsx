@@ -195,11 +195,9 @@ const StatCard = ({ title, value, icon }) => (
 
 const StatusBadge = ({ status }) => {
   const config = {
-    Pending: "bg-amber-100 text-amber-800 border-amber-200",
-    "In Review": "bg-blue-100 text-blue-800 border-blue-200",
-    "Sent to Authority": "bg-purple-100 text-purple-800 border-purple-200",
+    "In Progress": "bg-amber-100 text-amber-800 border-amber-200",
     Resolved: "bg-green-100 text-green-800 border-green-200",
-    Rejected: "bg-red-100 text-red-800 border-red-200",
+    Reported: "bg-red-100 text-red-800 border-red-200",
   }[status];
   return (
     <span
@@ -426,10 +424,20 @@ export default function AdminDashboard() {
       }
     );
   }, []);
-  function formatDate(dateString) {
-    const options = { month: "short", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("en-US", options);
-  }
+
+  const formatTimestamp = (timestamp) => {
+  const date = new Date(timestamp);
+  return date
+    .toLocaleString("en-US", {
+      month: "long", // August
+      day: "2-digit", // 01
+      year: "numeric", // 2025
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .replace(",", ""); // Remove comma between date and time
+};
 
   function calculateDistance(lat1, lon1, lat2, lon2) {
     const toRad = (value) => (value * Math.PI) / 180;
@@ -482,7 +490,7 @@ export default function AdminDashboard() {
         reports: 28,
         priority: "High",
         status,
-        createdAt: formatDate(issue.created_at),
+        createdAt: formatTimestamp(issue.created_at),
         description: issue.description,
         distance,
         location: {
@@ -522,10 +530,10 @@ export default function AdminDashboard() {
   }, []);
 
   const stats = {
-    pending: issuesData?.filter((i) => i.status === "Pending").length,
-    inReview: issuesData?.filter((i) => i.status === "In Review").length,
-    sent: issuesData?.filter((i) => i.status === "Sent to Authority").length,
+    progress: issuesData?.filter((i) => i.status === "In Progress").length,
+    reported: issuesData?.filter((i) => i.status === "Reported").length,
     resolved: issuesData?.filter((i) => i.status === "Resolved").length,
+    total: issuesData?.length,
   };
 
   const handleOpenModal = (issue) => {
@@ -565,23 +573,23 @@ export default function AdminDashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatCard
-              title="Pending Issues"
-              value={stats.pending}
+              title="In Progress"
+              value={stats.progress}
               icon={<FileText className="w-6 h-6 text-amber-500" />}
             />
             <StatCard
               title="Resolved"
-              value={stats.inReview}
+              value={stats.resolved}
               icon={<Eye className="w-6 h-6 text-blue-500" />}
             />
             <StatCard
               title="Reported"
-              value={stats.sent}
+              value={stats.reported}
               icon={<Send className="w-6 h-6 text-purple-500" />}
             />
             <StatCard
               title="Total Resolved"
-              value={stats.resolved}
+              value={stats.total}
               icon={<CheckCircle className="w-6 h-6 text-green-500" />}
             />
           </div>
