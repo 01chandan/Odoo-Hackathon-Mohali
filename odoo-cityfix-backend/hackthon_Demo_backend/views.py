@@ -136,7 +136,6 @@ def login_user(request):
         user_record = (
             supabase.table("users_table").select("is_verified").eq("email", email).execute()
         )
-        print(user_record)
         if not user_record.data:
             return JsonResponse({"error": "User not found"}, status=201)
 
@@ -148,6 +147,9 @@ def login_user(request):
             refresh_token = auth_response.session.refresh_token
 
             user_data = supabase.table("users_table").select("*").eq("email", email).execute()
+            issues_record = (
+                supabase.table("issues").select("*").execute()
+            )
             if user_data.data:
                 return JsonResponse(
                     {
@@ -155,6 +157,7 @@ def login_user(request):
                         "access": access_token,
                         "refresh": refresh_token,
                         "user": user_data.data[0],
+                        "issues": issues_record
                     },
                     status=200,
                 )
