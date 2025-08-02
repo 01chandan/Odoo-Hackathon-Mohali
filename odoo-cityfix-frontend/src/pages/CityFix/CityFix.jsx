@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
-import IssuePopup from "../../components/ReportNewIssue";
-const rawIssues = JSON.parse(localStorage.getItem("issues_data"));
-console.log(rawIssues);
+
+const ITEMS_PER_PAGE = 6;
+
 function getStatusColor(status) {
   switch (status) {
     case "Reported":
@@ -38,7 +38,7 @@ function calculateSince(dateString) {
   return `since last ${daysDiff} day${daysDiff !== 1 ? "s" : ""}`;
 }
 
-const issuesData = rawIssues?.map((issue) => {
+const issuesData = rawIssues.map((issue) => {
   const latestStatusLog =
     issue.issue_status_logs?.[issue.issue_status_logs.length - 1];
   const status = latestStatusLog?.status || issue.status;
@@ -70,16 +70,14 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
 
   return (
     <div className="relative inline-block text-left">
-      <div>
-        <button
-          type="button"
-          className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {selected === "All" || selected === "Any" ? label : selected}
-          <ChevronDown className="-mr-1 ml-2 h-5 w-5" />
-        </button>
-      </div>
+      <button
+        type="button"
+        className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selected === "All" || selected === "Any" ? label : selected}
+        <ChevronDown className="-mr-1 ml-2 h-5 w-5" />
+      </button>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -89,12 +87,7 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
             transition={{ duration: 0.1 }}
             className="origin-top-right absolute left-0 mt-2 w-46 rounded-md bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] z-10"
           >
-            <div
-              className="py-1"
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby="options-menu"
-            >
+            <div className="py-1" role="menu">
               {options.map((option) => (
                 <a
                   href="#"
@@ -104,7 +97,6 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
                       ? "text-teal-600 bg-teal-50"
                       : "text-gray-700"
                   } hover:bg-gray-100`}
-                  role="menuitem"
                   onClick={(e) => {
                     e.preventDefault();
                     onSelect(option);
@@ -139,8 +131,11 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
             label="Category"
             options={[
               "All",
-              "Roads",
               "Lighting",
+              "Roads",
+              "Cleanliness",
+              "Public Safety",
+              "Obstructions",
               "Water Supply",
               "Cleanliness",
               "Public Safety",
@@ -151,7 +146,7 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
           />
           <Dropdown
             label="Status"
-            options={["All", "Reported", "In Progress", "Completed"]}
+            options={["All", "Reported", "In Progress", "Resolved"]}
             selected={filters.status}
             onSelect={handleFilterChange("status")}
           />
@@ -166,10 +161,9 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
           <Search className="absolute left-3 top-1/2 -mt-2.5 h-5 w-5 text-gray-400 group-hover:text-gray-600 duration-300" />
           <input
             type="text"
-            id="search"
             value={searchQuery}
             onChange={handleSearch}
-            className="w-full pl-10 pr-4 py-2 text-sm text-gray-900 placeholder:text-sm outline-none placeholder:text-gray-400 group-hover:placeholder:text-gray-600 duration-300 min-w-[280px] placeholder:hover:text-medium border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+            className="w-full pl-10 pr-4 py-2 text-sm text-gray-900 placeholder:text-sm outline-none placeholder:text-gray-400 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 min-w-[280px]"
             placeholder="Search by title or location..."
           />
         </div>
@@ -259,7 +253,7 @@ const IssueCard = ({ issue, index }) => {
         <div className="flex items-center justify-between text-xs text-gray-500 mt-auto">
           <div className="flex items-center overflow-hidden">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-            <span className="truncate">{issue.location}</span>
+            <span className="truncate">{issue.address}</span>
           </div>
           <span className="font-semibold">{issue.distance} Km</span>
         </div>
@@ -270,43 +264,34 @@ const IssueCard = ({ issue, index }) => {
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   const handlePrev = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
-    }
+    if (currentPage > 1) onPageChange(currentPage - 1);
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages) {
-      onPageChange(currentPage + 1);
-    }
+    if (currentPage < totalPages) onPageChange(currentPage + 1);
   };
 
   if (totalPages <= 1) return null;
 
   return (
     <div className="flex items-center justify-center py-8">
-      <nav
-        className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-        aria-label="Pagination"
-      >
+      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
         <button
           onClick={handlePrev}
           disabled={currentPage === 1}
-          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
         >
-          <span className="sr-only">Previous</span>
           <ArrowLeft className="h-5 w-5" />
         </button>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            aria-current={currentPage === page ? "page" : undefined}
-            className={`${
+            className={`px-4 py-2 border text-sm font-medium ${
               currentPage === page
-                ? "z-10 bg-teal-50 border-teal-500 text-teal-600"
+                ? "bg-teal-50 border-teal-500 text-teal-600"
                 : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-            } relative inline-flex items-center px-4 py-2 border text-sm font-medium`}
+            }`}
           >
             {page}
           </button>
@@ -314,9 +299,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         <button
           onClick={handleNext}
           disabled={currentPage === totalPages}
-          className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
         >
-          <span className="sr-only">Next</span>
           <ArrowRight className="h-5 w-5" />
         </button>
       </nav>
@@ -335,6 +319,67 @@ export default function App() {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [location, setLocation] = useState(null);
+  const [issuesData, setIssuesData] = useState([]);
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (err) => {
+        console.warn("Geolocation error:", err.message);
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    const loadIssues = async () => {
+      const rawIssues = JSON.parse(localStorage.getItem("issues_data")) || [];
+      const resolved = await Promise.all(
+        rawIssues.map(async (issue) => {
+          const lat = issue.latitude;
+          const lon = issue.longitude;
+          const address = await reverseGeocode(lat, lon);
+          const status = issue?.status || "Reported";
+
+          let distance = 0;
+          if (location) {
+            distance = calculateDistance(
+              location.latitude,
+              location.longitude,
+              lat,
+              lon
+            );
+          }
+
+          return {
+            id: issue.id,
+            category: issue.categories?.name || "Unknown",
+            title: issue.title,
+            status,
+            statusColor: getStatusColor(status),
+            date: formatDate(issue.created_at),
+            since: calculateSince(issue.created_at),
+            distance,
+            location: { latitude: lat, longitude: lon },
+            address,
+            imageUrl:
+              issue.issue_photos?.[0]?.image_url ||
+              "https://placehold.co/600x400?text=No+Image",
+          };
+        })
+      );
+      setIssuesData(resolved);
+    };
+
+    if (location) {
+      loadIssues();
+    }
+  }, [location]);
 
   const filteredIssues = issuesData?.filter((issue) => {
     if (filters.category !== "All" && issue.category !== filters.category)
@@ -354,10 +399,9 @@ export default function App() {
     if (
       searchQuery &&
       !issue.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !issue.location.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
+      !issue.address.toLowerCase().includes(searchQuery.toLowerCase())
+    )
       return false;
-    }
 
     return true;
   });
