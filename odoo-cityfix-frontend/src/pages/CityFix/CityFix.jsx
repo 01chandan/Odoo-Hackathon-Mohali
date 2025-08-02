@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
@@ -9,7 +10,7 @@ import {
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
-const rawIssues = JSON.parse(localStorage.getItem("issues_data"));
+import IssuePopup from "../../components/ReportNewIssue";
 
 function getStatusColor(status) {
   switch (status) {
@@ -25,7 +26,6 @@ function getStatusColor(status) {
       return "bg-gray-300";
   }
 }
-
 function formatDate(dateString) {
   const options = { month: "short", day: "numeric" };
   return new Date(dateString).toLocaleDateString("en-US", options);
@@ -34,52 +34,61 @@ function formatDate(dateString) {
 function calculateSince(dateString) {
   const now = new Date();
   const then = new Date(dateString);
-  const daysDiff = Math.floor((now - then) / (1000 * 60 * 60 * 24));
-  return `since last ${daysDiff} day${daysDiff !== 1 ? "s" : ""}`;
+  const diffMs = now - then;
+
+  const minutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const months = Math.floor(days / 30);
+
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+  if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  if (days < 30) return `${days} day${days !== 1 ? "s" : ""} ago`;
+  return `${months} month${months !== 1 ? "s" : ""} ago`;
 }
 
-const issuesData = rawIssues.map((issue) => {
-  const latestStatusLog =
-    issue.issue_status_logs?.[issue.issue_status_logs.length - 1];
-  const status = latestStatusLog?.status || issue.status;
+async function reverseGeocode(lat, lon) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=en`
+    );
+    const data = await res.json();
+    return data.display_name || "Address not found";
+  } catch (error) {
+    console.error("Reverse geocoding error:", error);
+    return "Address not available";
+  }
+}
 
-  return {
-    id: issue.id,
-    category: issue.categories?.name || "Unknown",
-    title: issue.title,
-    status: status,
-    statusColor: getStatusColor(status),
-    date: formatDate(issue.created_at),
-    since: calculateSince(issue.created_at),
-    distance: 0, // 🔧 You can calculate this based on user location and issue.latitude/longitude
-    location: `lat: ${issue.latitude}, lon: ${issue.longitude}`, // or reverse geocode to address
-    imageUrl:
-      issue.issue_photos?.[0]?.image_url ||
-      "https://placehold.co/600x400?text=No+Image",
-  };
-});
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const toRad = (value) => (value * Math.PI) / 180;
 
-console.log(issuesData);
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
 
-const ITEMS_PER_PAGE = 6;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-// Normal Components
+  return +(R * c).toFixed(2); // Distance in km with 2 decimal places
+}
 
 const Dropdown = ({ label, options, selected, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="relative inline-block text-left">
-      <div>
-        <button
-          type="button"
-          className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {selected === "All" || selected === "Any" ? label : selected}
-          <ChevronDown className="-mr-1 ml-2 h-5 w-5" />
-        </button>
-      </div>
+      <button
+        type="button"
+        className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selected === "All" || selected === "Any" ? label : selected}
+        <ChevronDown className="-mr-1 ml-2 h-5 w-5" />
+      </button>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -87,14 +96,9 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.1 }}
-            className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+            className="origin-top-right absolute left-0 mt-2 w-46 rounded-md bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] z-10"
           >
-            <div
-              className="py-1"
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby="options-menu"
-            >
+            <div className="py-1" role="menu">
               {options.map((option) => (
                 <a
                   href="#"
@@ -104,7 +108,6 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
                       ? "text-teal-600 bg-teal-50"
                       : "text-gray-700"
                   } hover:bg-gray-100`}
-                  role="menuitem"
                   onClick={(e) => {
                     e.preventDefault();
                     onSelect(option);
@@ -122,7 +125,13 @@ const Dropdown = ({ label, options, selected, onSelect }) => {
   );
 };
 
-const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
+const Header = ({
+  filters,
+  setFilters,
+  searchQuery,
+  setSearchQuery,
+  setIsOpenIssuePopup,
+}) => {
   const handleFilterChange = (filterName) => (value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
   };
@@ -132,16 +141,18 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
   };
 
   return (
-    <header className="py-6 px-4 md:px-8">
+    <header className="py-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 md:gap-4 flex-wrap">
           <Dropdown
             label="Category"
             options={[
               "All",
-              "Streetlight",
-              "Road",
-              "Garbage Collection",
+              "Lighting",
+              "Roads",
+              "Cleanliness",
+              "Public Safety",
+              "Obstructions",
               "Water Supply",
             ]}
             selected={filters.category}
@@ -149,7 +160,7 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
           />
           <Dropdown
             label="Status"
-            options={["All", "Reported", "In Progress", "Completed"]}
+            options={["All", "Reported", "In Progress", "Resolved"]}
             selected={filters.status}
             onSelect={handleFilterChange("status")}
           />
@@ -164,12 +175,22 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
           <Search className="absolute left-3 top-1/2 -mt-2.5 h-5 w-5 text-gray-400 group-hover:text-gray-600 duration-300" />
           <input
             type="text"
-            id="search"
             value={searchQuery}
             onChange={handleSearch}
-            className="w-full pl-10 pr-4 py-2 text-sm text-gray-900 placeholder:text-sm outline-none placeholder:text-gray-400 group-hover:placeholder:text-gray-600 duration-300 min-w-[280px] placeholder:hover:text-medium border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+            className="w-full pl-10 pr-4 py-2 text-sm text-gray-900 placeholder:text-sm outline-none placeholder:text-gray-400 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 min-w-[280px]"
             placeholder="Search by title or location..."
           />
+        </div>
+        <div className="flex items-center gap-2 md:gap-4">
+          <button className="w-full px-5 py-2 text-sm font-medium text-[#000000] shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-md hover:bg-gray-200 transition-colors duration-500 cursor-pointer">
+            My Issue
+          </button>
+          <button
+            onClick={() => setIsOpenIssuePopup(true)}
+            className="w-full px-5 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 transition-colors duration-500 cursor-pointer whitespace-nowrap"
+          >
+            Report New Issue
+          </button>
         </div>
       </div>
     </header>
@@ -177,6 +198,7 @@ const Header = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
 };
 
 const IssueCard = ({ issue, index }) => {
+  const navigate = useNavigate();
   const cardVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -192,9 +214,13 @@ const IssueCard = ({ issue, index }) => {
 
   return (
     <motion.div
-      className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col"
+      className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out flex flex-col cursor-pointer"
       variants={cardVariants}
       layout
+      onClick={() => {
+        console.log(1);
+        navigate("/report-details", { state: issue });
+      }}
     >
       <div className="relative">
         <img
@@ -246,7 +272,7 @@ const IssueCard = ({ issue, index }) => {
         <div className="flex items-center justify-between text-xs text-gray-500 mt-auto">
           <div className="flex items-center overflow-hidden">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-            <span className="truncate">{issue.location}</span>
+            <span className="truncate">{issue.address}</span>
           </div>
           <span className="font-semibold">{issue.distance} Km</span>
         </div>
@@ -257,43 +283,34 @@ const IssueCard = ({ issue, index }) => {
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   const handlePrev = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
-    }
+    if (currentPage > 1) onPageChange(currentPage - 1);
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages) {
-      onPageChange(currentPage + 1);
-    }
+    if (currentPage < totalPages) onPageChange(currentPage + 1);
   };
 
   if (totalPages <= 1) return null;
 
   return (
     <div className="flex items-center justify-center py-8">
-      <nav
-        className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-        aria-label="Pagination"
-      >
+      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
         <button
           onClick={handlePrev}
           disabled={currentPage === 1}
-          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
         >
-          <span className="sr-only">Previous</span>
           <ArrowLeft className="h-5 w-5" />
         </button>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            aria-current={currentPage === page ? "page" : undefined}
-            className={`${
+            className={`px-4 py-2 border text-sm font-medium ${
               currentPage === page
-                ? "z-10 bg-teal-50 border-teal-500 text-teal-600"
+                ? "bg-teal-50 border-teal-500 text-teal-600"
                 : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-            } relative inline-flex items-center px-4 py-2 border text-sm font-medium`}
+            }`}
           >
             {page}
           </button>
@@ -301,9 +318,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         <button
           onClick={handleNext}
           disabled={currentPage === totalPages}
-          className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
         >
-          <span className="sr-only">Next</span>
           <ArrowRight className="h-5 w-5" />
         </button>
       </nav>
@@ -312,6 +328,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 };
 
 export default function App() {
+  const [isOpenIssuePopup, setIsOpenIssuePopup] = useState(false);
+  console.log(isOpenIssuePopup);
+
   const [filters, setFilters] = useState({
     category: "All",
     status: "All",
@@ -319,8 +338,69 @@ export default function App() {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [location, setLocation] = useState(null);
+  const [issuesData, setIssuesData] = useState([]);
 
-  const filteredIssues = issuesData.filter((issue) => {
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (err) => {
+        console.warn("Geolocation error:", err.message);
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    const loadIssues = async () => {
+      const rawIssues = JSON.parse(localStorage.getItem("issues_data")) || [];
+      const resolved = await Promise.all(
+        rawIssues.map(async (issue) => {
+          const lat = issue.latitude;
+          const lon = issue.longitude;
+          const address = await reverseGeocode(lat, lon);
+          const status = issue?.status || "Reported";
+
+          let distance = 0;
+          if (location) {
+            distance = calculateDistance(
+              location.latitude,
+              location.longitude,
+              lat,
+              lon
+            );
+          }
+
+          return {
+            id: issue.id,
+            category: issue.categories?.name || "Unknown",
+            title: issue.title,
+            status,
+            statusColor: getStatusColor(status),
+            date: formatDate(issue.created_at),
+            since: calculateSince(issue.created_at),
+            distance,
+            location: { latitude: lat, longitude: lon },
+            address,
+            imageUrl:
+              issue.issue_photos?.[0]?.image_url ||
+              "https://placehold.co/600x400?text=No+Image",
+          };
+        })
+      );
+      setIssuesData(resolved);
+    };
+
+    if (location) {
+      loadIssues();
+    }
+  }, [location]);
+
+  const filteredIssues = issuesData?.filter((issue) => {
     if (filters.category !== "All" && issue.category !== filters.category)
       return false;
     if (filters.status !== "All" && issue.status !== filters.status)
@@ -338,13 +418,14 @@ export default function App() {
     if (
       searchQuery &&
       !issue.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !issue.location.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
+      !issue.address.toLowerCase().includes(searchQuery.toLowerCase())
+    )
       return false;
-    }
 
     return true;
   });
+
+  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -357,7 +438,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className=" bg-white">
       <Navbar />
       <div className="min-h-screen bg-gray-50 font-sans">
         <div className="container mx-auto px-4">
@@ -366,6 +447,7 @@ export default function App() {
             setFilters={setFilters}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
+            setIsOpenIssuePopup={setIsOpenIssuePopup}
           />
           <main>
             <AnimatePresence>
@@ -397,6 +479,7 @@ export default function App() {
             onPageChange={setCurrentPage}
           />
         </div>
+        {isOpenIssuePopup && <IssuePopup />}
       </div>
       <Footer />
     </div>
